@@ -188,7 +188,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .shop-carousel-head strong { color: #234b47; font-size: .82rem; font-weight: 900; }
 .shop-carousel-head small { color: #77928d; font-size: .68rem; white-space: nowrap; }
 .shop-carousel-wrap { position: relative; order: 2; min-width: 0; }
-.shop-products { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 20px) / 3); gap: 10px; width: calc(100% - 32px); margin-inline: 16px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 0 0 16px; }
+.shop-products { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 20px) / 3); gap: 10px; width: calc(100% - 32px); margin-inline: 16px; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: none; padding: 0 0 16px; }
 .shop-products::-webkit-scrollbar { display: none; }
 .shop-product { min-width: 0; overflow: hidden; scroll-snap-align: start; border: 1px solid #e2eeeb; border-radius: 12px; background: #fff; }
 .shop-product-photo { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #e8f3ef; }
