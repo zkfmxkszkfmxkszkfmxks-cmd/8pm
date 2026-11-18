@@ -50,7 +50,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .story-ring { background: #b3e9e3; padding: 3px; }
 .story.active .story-ring { background: var(--mint); }
 .story-all { background: #e8f8f5; color: var(--green); }
-.stories-next { color: var(--green); border-color: #d1ebe7; box-shadow: 0 3px 10px #104b4422; }
+.stories-next, .stories-prev { color: var(--green); border-color: #d1ebe7; box-shadow: 0 3px 10px #104b4422; }
+.stories-prev { position: absolute; left: 0; top: 19px; z-index: 2; width: 32px; height: 32px; border: 1px solid #d1ebe7; border-radius: 50%; background: #fffffff0; font-size: 1.5rem; line-height: 1; }
+.stories-prev:disabled, .stories-next:disabled { opacity: 0; pointer-events: none; }
 .feed-meta { color: #56716e; font-weight: 800; }
 .feed-meta strong { color: var(--green); }
 
