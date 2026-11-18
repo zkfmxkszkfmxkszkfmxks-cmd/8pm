@@ -46,8 +46,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .location-note button { color: var(--green); }
 
 .stories { gap: 14px; border-color: #e5eeec; }
+.stories-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 16px 2px 8px; }
+.stories-heading strong { color: #173a38; font-size: .86rem; font-weight: 900; }
+.stories-heading span { color: #718d88; font-size: .71rem; white-space: nowrap; }
 .story { color: #3d5553; font-weight: 800; }
-.story-ring { background: #b3e9e3; padding: 3px; }
+.story-ring { position: relative; background: #b3e9e3; padding: 3px; }
+.story-new { position: absolute; right: 1px; bottom: 1px; padding: 1px 4px; border-radius: 5px; background: #087f7a; color: #fff; font-size: .57rem; font-style: normal; font-weight: 900; line-height: 1.4; }
 .story.active .story-ring { background: var(--mint); }
 .story-all { background: #e8f8f5; color: var(--green); }
 .stories-next, .stories-prev { color: var(--green); border-color: #d1ebe7; box-shadow: 0 3px 10px #104b4422; }
@@ -154,6 +158,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .pickup-map-pin { position: absolute; display: grid; place-items: center; width: 28px; height: 28px; transform: translate(-50%,-50%); border: 2px solid #fff; border-radius: 50%; background: #008d87; box-shadow: 0 3px 10px #124b4666; color: #fff; font-size: .76rem; font-weight: 900; }
 .pickup-map-pin.start { background: #243d3b; }
 .pickup-kakao-map { position: absolute; inset: 0; z-index: 2; display: none; }
+.pickup-map-controls { position: absolute; z-index: 3; top: 9px; right: 9px; display: flex; gap: 5px; }
+.pickup-map-controls[hidden] { display: none; }
+.pickup-map-controls button { padding: 7px 9px; border: 1px solid #b9ddd7; border-radius: 8px; background: #fffffff0; color: #087f7a; box-shadow: 0 2px 8px #124b4629; font-size: .69rem; font-weight: 900; }
 .pickup-kakao-label { display: inline-block; min-width: 24px; padding: 4px 6px; border-radius: 8px; background: #008d87; color: #fff; box-shadow: 0 2px 8px #124b4666; text-align: center; font-size: 12px; font-weight: 900; }
 .pickup-map-caption { color: #7b928d; font-size: .69rem; line-height: 1.5; }
 
