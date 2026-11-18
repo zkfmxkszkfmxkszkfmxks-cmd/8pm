@@ -134,6 +134,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .owner-status { padding: 6px 9px; border-radius: 8px; background: #fff3de; color: #93620d; font-size: .69rem; font-weight: 800; white-space: nowrap; }
 .owner-status.accepted, .owner-status.preparing { background: #e4f7f3; color: #087f7a; }
 .owner-status.ready { background: #dff3e7; color: #25744e; }
+.owner-status.completed { background: #eef2f0; color: #446660; }
 .owner-order-items { padding: 13px 0; border-top: 1px solid #edf2f0; border-bottom: 1px solid #edf2f0; }
 .owner-order-items div { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; font-size: .83rem; }
 .owner-order-items b { white-space: nowrap; }
