@@ -156,3 +156,67 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .pickup-kakao-map { position: absolute; inset: 0; z-index: 2; display: none; }
 .pickup-kakao-label { display: inline-block; min-width: 24px; padding: 4px 6px; border-radius: 8px; background: #008d87; color: #fff; box-shadow: 0 2px 8px #124b4666; text-align: center; font-size: 12px; font-weight: 900; }
 .pickup-map-caption { color: #7b928d; font-size: .69rem; line-height: 1.5; }
+
+/* 화면 전환과 상호작용 */
+@keyframes page-arrive { from { opacity: .55; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sheet-arrive { from { opacity: 0; transform: translateY(22px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes backdrop-arrive { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cart-arrive { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.main.page-enter { animation: page-arrive .38s cubic-bezier(.2,.7,.2,1) both; }
+.reveal-ready { opacity: 0; transform: translateY(15px); transition: opacity .42s ease, transform .42s cubic-bezier(.2,.7,.2,1); transition-delay: var(--reveal-delay, 0ms); }
+.reveal-ready.is-visible { opacity: 1; transform: translateY(0); }
+.overlay-bg { animation: backdrop-arrive .2s ease both; }
+.overlay-bg .sheet { animation: sheet-arrive .34s cubic-bezier(.2,.75,.2,1) both; }
+.floating-cart { animation: cart-arrive .35s cubic-bezier(.2,.75,.2,1) both; }
+.tabbar button, .tab-icon, .story-ring, .mode-switch, .settings-button, .outline-button, .primary, .ai-button, .add-btn, .mic-button, .owner-status, .search-field { transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, color .2s ease, transform .2s ease; }
+.tabbar button.active .tab-icon { transform: translateY(-2px) scale(1.06); }
+.post-actions button.liked { animation: page-arrive .25s ease both; }
+@media (hover: hover) {
+  .story:hover .story-ring { transform: translateY(-3px) scale(1.04); box-shadow: 0 5px 15px #087f7a26; }
+  .tabbar button:hover, .mode-switch:hover, .settings-button:hover, .outline-button:hover { transform: translateY(-2px); }
+  .primary:hover, .ai-button:hover, .add-btn:hover, .mic-button:hover { transform: translateY(-2px); box-shadow: 0 8px 18px #2ac1bc36; }
+  .shop-row:hover, .manage-item:hover { background: #f2faf8; }
+}
+button:active { transform: scale(.97); }
+
+/* 넓은 화면과 작은 휴대전화에서도 읽기 쉬운 간격 */
+.main { width: min(100%, 820px); }
+.main.map { width: min(100%, 930px); }
+.main.ownerOrders, .main.manage { width: min(100%, 920px); max-width: 920px; }
+.page-heading h1 { font-size: clamp(1.55rem, 4vw, 2rem); }
+.panel, .order-card, .owner-order-card { min-width: 0; }
+.map-canvas { height: clamp(300px, 48vw, 430px); }
+.pickup-map { height: clamp(220px, 34vw, 280px); }
+.order-bottom, .owner-eta, .order-price-row { min-width: 0; }
+@media (min-width: 780px) {
+  .main.ownerOrders .panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 15px; align-items: start; }
+  .main.ownerOrders .panel-title, .main.ownerOrders .panel > .empty, .main.ownerOrders .panel > .muted { grid-column: 1 / -1; }
+  .main.ownerOrders .owner-order-card { margin: 0 0 15px; }
+}
+@media (max-width: 600px) {
+  .site { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+  .header-main { min-width: 0; }
+  .brand { min-width: 0; font-size: clamp(1rem, 4.4vw, 1.25rem); }
+  .brand > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tabbar button { min-width: 0; min-height: 58px; padding-inline: 4px; }
+  .panel { padding: clamp(15px, 4vw, 22px); }
+  .map-canvas { height: min(62vh, 390px); min-height: 290px; }
+  .sheet { width: 100%; }
+}
+@media (max-width: 380px) {
+  .main { padding-inline: 12px; }
+  .header-main { padding-inline: 12px; }
+  .brand-mark { width: 29px; height: 31px; flex: none; }
+  .mode-switch { padding-inline: 10px; }
+  .header-actions { gap: 5px; }
+  .order-bottom { flex-wrap: wrap; }
+  .order-bottom button { margin-left: auto; }
+  .owner-eta { flex-wrap: wrap; row-gap: 4px; }
+  .owner-eta strong { width: 100%; }
+  .order-price-row { align-items: flex-start; }
+  .order-price-row b { font-size: .76rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; transition-delay: 0ms !important; }
+  .reveal-ready { opacity: 1; transform: none; }
+}
