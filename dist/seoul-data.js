@@ -53,5 +53,9 @@ const moreMenus=[
 ];
 window.SEOUL_MENU_DEFS=[
   ...firstNine,
-  ...moreMenus.flatMap(([shop,items],group)=>items.map(([name,price,stock,image],index)=>[10+group*3+index,shop,name,price,stock,image,'오늘 준비한 '+name]))
+  ...moreMenus.flatMap(([shop,items],group)=>items.map(([name,price,stock,image],index)=>[10+group*3+index,shop,name,price,stock,image,'오늘 준비한 '+name])),
+  [61,'bake','성수 소금빵',3200,18,'croissant','겉은 바삭하고 속은 촉촉한 오늘의 소금빵'],
+  [62,'bake','시나몬 스콘',4200,11,'scone','따뜻한 향이 좋은 시나몬 스콘'],
+  [63,'bake','올리브 치아바타',5800,9,'sandwich','올리브를 넣어 든든하게 구운 빵'],
+  [64,'bake','초코 휘낭시에',2800,16,'scone','진한 초콜릿을 담은 작은 디저트']
 ];

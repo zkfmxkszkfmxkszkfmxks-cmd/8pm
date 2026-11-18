@@ -121,3 +121,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .post { transition: none; }
   .post:hover { transform: none; }
 }
+.owner-shop-banner { display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin: 0 0 18px; background: #e9f8f5; border: 1px solid #c9eae4; border-radius: 18px; }
+.owner-shop-banner img { width: 54px; height: 54px; object-fit: cover; border-radius: 13px; }
+.owner-shop-banner strong, .owner-shop-banner small { display: block; }
+.owner-shop-banner strong { font-size: 1rem; }
+.owner-shop-banner small { margin-top: 4px; color: #587b76; font-size: .72rem; }
+.owner-draft-shop { padding: 10px 12px; margin-top: 14px; background: #e9f8f5; border-radius: 10px; color: #087f7a; font-weight: 800; font-size: .78rem; }
