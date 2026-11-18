@@ -176,7 +176,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .delete-order-button { display: block; margin: 9px 0 0 auto; padding: 7px 2px; border: 0; background: transparent; color: #8b6d6a; font-size: .75rem; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .delete-order-button:hover { color: #b44747; }
 .delete-order-button:focus-visible, .delete-order-confirm:focus-visible { outline: 3px solid #28bdb5; outline-offset: 2px; }
-.delete-order-note { margin: 10px 0 18px; padding: 11px 13px; border-radius: 10px; background: #f7f5f2; color: #5d6865; font-size: .82rem; line-height: 1.6; }
 .delete-order-actions { display: flex; gap: 9px; }
 .delete-order-actions button { flex: 1; min-height: 42px; border-radius: 11px; cursor: pointer; font-weight: 800; }
 .delete-order-confirm { border: 1px solid #cd5d58; background: #cd5d58; color: #fff; }

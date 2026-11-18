@@ -1,5 +1,7 @@
 # 마감한끼 추천·재고 데이터 파이프라인
 
+![데이터 처리 흐름](dist/pipeline-diagram.svg)
+
 현재 사이트는 `dist/recommendation-pipeline.js`를 브라우저에서 실행하는 시연용 구조입니다. AI 모델과 공용 데이터베이스는 연결되지 않았습니다. 사장님이 등록·수정한 메뉴와 손님의 주문은 같은 브라우저의 `localStorage`에 저장됩니다.
 
 ```text

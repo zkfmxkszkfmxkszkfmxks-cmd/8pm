@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" role="img" aria-labelledby="title desc">
+  <title id="title">마감한끼 데이터 처리 파이프라인</title>
+  <desc id="desc">사장님 메뉴 등록과 손님 요청을 받아 오늘 재고와 3km 거리 조건을 확인하고, 골목 메뉴를 추천한 뒤 주문 시 재고를 다시 확인하여 차감합니다.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#199d98"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="170%">
+      <feDropShadow dx="0" dy="7" stdDeviation="10" flood-color="#11635f" flood-opacity=".10"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="440" rx="28" fill="#f6fbfa"/>
+  <text x="54" y="63" fill="#173e3b" font-family="Noto Sans KR,Pretendard,Malgun Gothic,sans-serif" font-size="30" font-weight="800">마감한끼 데이터 처리 파이프라인</text>
+  <text x="55" y="94" fill="#668481" font-family="Noto Sans KR,Pretendard,Malgun Gothic,sans-serif" font-size="16">두 입력을 모아 가까운 골목의 마감 재고로 추천 조합을 만듭니다</text>
+
+  <path d="M268 174 C312 174 325 228 378 228" fill="none" stroke="#199d98" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M268 306 C312 306 325 252 378 252" fill="none" stroke="#199d98" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M625 240 H666" fill="none" stroke="#199d98" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M915 240 H954" fill="none" stroke="#199d98" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)" font-family="Noto Sans KR,Pretendard,Malgun Gothic,sans-serif">
+    <rect x="42" y="125" width="226" height="99" rx="18" fill="#ffffff" stroke="#d4ebe7"/>
+    <rect x="42" y="257" width="226" height="99" rx="18" fill="#ffffff" stroke="#d4ebe7"/>
+    <rect x="384" y="183" width="241" height="114" rx="18" fill="#e6f7f3" stroke="#a9ded7"/>
+    <rect x="672" y="183" width="243" height="114" rx="18" fill="#ffffff" stroke="#d4ebe7"/>
+    <rect x="960" y="183" width="198" height="114" rx="18" fill="#ffffff" stroke="#d4ebe7"/>
+  </g>
+
+  <g font-family="Noto Sans KR,Pretendard,Malgun Gothic,sans-serif">
+    <text x="62" y="158" fill="#0c817c" font-size="14" font-weight="700">사장님</text>
+    <text x="62" y="186" fill="#173e3b" font-size="22" font-weight="800">메뉴 등록</text>
+    <text x="62" y="207" fill="#668481" font-size="14">사진 · 상품 정보 · 남은 수량</text>
+
+    <text x="62" y="290" fill="#0c817c" font-size="14" font-weight="700">손님</text>
+    <text x="62" y="318" fill="#173e3b" font-size="22" font-weight="800">추천 요청</text>
+    <text x="62" y="339" fill="#668481" font-size="14">인원 · 예산 · 취향</text>
+
+    <text x="405" y="217" fill="#0c817c" font-size="14" font-weight="700">01  검증</text>
+    <text x="405" y="249" fill="#173e3b" font-size="22" font-weight="800">재고·조건 확인</text>
+    <text x="405" y="274" fill="#557b76" font-size="15">오늘 재고 · 3km 이내</text>
+
+    <text x="693" y="217" fill="#0c817c" font-size="14" font-weight="700">02  추천</text>
+    <text x="693" y="249" fill="#173e3b" font-size="22" font-weight="800">골목 메뉴 조합</text>
+    <text x="693" y="274" fill="#668481" font-size="15">1km 우선 · 예산 · 할인</text>
+
+    <text x="980" y="217" fill="#0c817c" font-size="14" font-weight="700">03  주문</text>
+    <text x="980" y="249" fill="#173e3b" font-size="22" font-weight="800">주문 확정</text>
+    <text x="980" y="274" fill="#668481" font-size="15">재고 재확인 · 차감</text>
+
+    <text x="55" y="408" fill="#718c88" font-size="14">현재 추천 조건 해석은 규칙 기반 데모이며, 실제 AI 모델과 공용 데이터베이스는 아직 연결되지 않았습니다.</text>
+  </g>
+</svg>
