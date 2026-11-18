@@ -172,6 +172,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .pickup-map-controls button { padding: 7px 9px; border: 1px solid #b9ddd7; border-radius: 8px; background: #fffffff0; color: #087f7a; box-shadow: 0 2px 8px #124b4629; font-size: .69rem; font-weight: 900; }
 .pickup-kakao-label { display: inline-block; min-width: 24px; padding: 4px 6px; border-radius: 8px; background: #008d87; color: #fff; box-shadow: 0 2px 8px #124b4666; text-align: center; font-size: 12px; font-weight: 900; }
 .pickup-map-caption { color: #7b928d; font-size: .69rem; line-height: 1.5; }
+.surplus-note { display: inline-flex; align-items: center; margin: 8px 0 4px; padding: 5px 9px; border-radius: 8px; background: #e8f8f2; color: #087f70; font-size: .72rem; font-weight: 800; }
+.delete-order-button { display: block; margin: 9px 0 0 auto; padding: 7px 2px; border: 0; background: transparent; color: #8b6d6a; font-size: .75rem; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.delete-order-button:hover { color: #b44747; }
+.delete-order-button:focus-visible, .delete-order-confirm:focus-visible { outline: 3px solid #28bdb5; outline-offset: 2px; }
+.delete-order-note { margin: 10px 0 18px; padding: 11px 13px; border-radius: 10px; background: #f7f5f2; color: #5d6865; font-size: .82rem; line-height: 1.6; }
+.delete-order-actions { display: flex; gap: 9px; }
+.delete-order-actions button { flex: 1; min-height: 42px; border-radius: 11px; cursor: pointer; font-weight: 800; }
+.delete-order-confirm { border: 1px solid #cd5d58; background: #cd5d58; color: #fff; }
 
 /* 화면 전환과 상호작용 */
 @keyframes page-arrive { from { opacity: .55; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }

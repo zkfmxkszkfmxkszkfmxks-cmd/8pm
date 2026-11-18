@@ -34,13 +34,13 @@ const firstNine=[
 ];
 const moreMenus=[
   ['yeonnam',[['토마토 미트 파스타',13500,16,'sandwich'],['버섯 크림 리조또',14200,12,'rice'],['시저 샐러드',10500,14,'egg']]],
-  ['mangwon',[['망원 과일 주스',4300,18,'orange'],['소풍 주먹밥',2800,22,'onigiri'],['한입 에그 샐러드',5800,14,'egg']]],
+  ['mangwon',[['병입 과일 주스',4300,18,'orange'],['소풍 주먹밥',2800,22,'onigiri'],['한입 에그 샐러드',5800,14,'egg']]],
   ['euljiro',[['을지로 김치찌개',10000,11,'rice'],['돼지불백 정식',12000,18,'rice'],['계란말이 한 접시',7500,10,'egg']]],
-  ['ikseon',[['익선 카페라테',4900,21,'latte'],['따뜻한 버터 스콘',3800,13,'scone'],['아침 크루아상',4600,12,'croissant']]],
+  ['ikseon',[['병입 카페라테',4900,21,'latte'],['버터 스콘',3800,13,'scone'],['아침 크루아상',4600,12,'croissant']]],
   ['gwanghwa',[['광화문 가츠동',12500,17,'rice'],['유부우동',9500,12,'onigiri'],['연어 오니기리 세트',10500,15,'onigiri']]],
   ['itaewon',[['수제 함박스테이크',16800,12,'egg'],['버섯 크림 파스타',14500,14,'sandwich'],['치킨 샐러드',11500,18,'egg']]],
-  ['hannam',[['한남 버터 스콘',4200,15,'scone'],['아몬드 크루아상',5400,10,'croissant'],['바닐라 라테',5300,20,'latte']]],
-  ['yeouido',[['여의도 아메리카노',3500,28,'coffee'],['출근길 카페라테',4800,24,'latte'],['오렌지 주스',4300,18,'orange']]],
+  ['hannam',[['한남 버터 스콘',4200,15,'scone'],['아몬드 크루아상',5400,10,'croissant'],['병입 바닐라 라테',5300,20,'latte']]],
+  ['yeouido',[['병입 콜드브루',3500,28,'coffee'],['병입 카페라테',4800,24,'latte'],['병입 오렌지 주스',4300,18,'orange']]],
   ['gangnam',[['아침 샌드위치',7400,17,'sandwich'],['채소 듬뿍 덮밥',9500,13,'rice'],['에그 샐러드 볼',6500,12,'egg']]],
   ['sinsa',[['신사 크루아상',5200,14,'croissant'],['메이플 스콘',4300,16,'scone'],['그린 샌드위치',7500,11,'sandwich']]],
   ['jamsil',[['잠실 돈카츠 정식',14500,14,'rice'],['소고기 규동',11800,17,'rice'],['새우튀김 한 접시',9900,16,'onigiri']]],
@@ -48,8 +48,8 @@ const moreMenus=[
   ['konkuk',[['건대 토마토 파스타',13500,16,'sandwich'],['베이컨 알리오올리오',13800,13,'sandwich'],['버섯 크림 리조또',14200,12,'rice']]],
   ['nowon',[['햇살 버터 스콘',3900,15,'scone'],['노원 크루아상',4700,13,'croissant'],['오늘의 샌드위치',6800,12,'sandwich']]],
   ['mia',[['미아 수제 짜장면',9500,14,'rice'],['해물 짬뽕',11500,21,'rice'],['찹쌀 탕수육',17500,13,'egg']]],
-  ['guro',[['출근길 샌드위치',6600,20,'sandwich'],['모닝 아메리카노',3000,29,'coffee'],['생오렌지 한 잔',4100,18,'orange']]],
-  ['mokdong',[['목동 에그 브런치',7200,11,'egg'],['주말 샌드위치',7300,13,'sandwich'],['따뜻한 카페라테',4900,22,'latte']]]
+  ['guro',[['출근길 샌드위치',6600,20,'sandwich'],['병입 콜드브루',3000,29,'coffee'],['병입 생오렌지 주스',4100,18,'orange']]],
+  ['mokdong',[['목동 에그 브런치',7200,11,'egg'],['주말 샌드위치',7300,13,'sandwich'],['병입 카페라테',4900,22,'latte']]]
 ];
 window.SEOUL_MENU_DEFS=[
   ...firstNine,
@@ -85,4 +85,4 @@ window.SEOUL_MENU_DEFS=[
 ];
 const cuisinePhoto={rice:'korean-meal',euljiro:'korean-meal',songpa:'korean-meal',yeonnam:'western-meal',itaewon:'western-meal',konkuk:'western-meal',mia:'chinese-meal',cafe:'chinese-meal',gwanghwa:'japanese-meal',jamsil:'japanese-meal'};
 window.SEOUL_SHOPS.forEach(s=>{if(cuisinePhoto[s.id])s.image=cuisinePhoto[s.id]});
-window.SEOUL_MENU_DEFS=window.SEOUL_MENU_DEFS.map(([id,shop,name,price,stock,image,desc])=>[id,shop,name,price,stock,cuisinePhoto[shop]||image,desc]);
+window.SEOUL_MENU_DEFS=window.SEOUL_MENU_DEFS.map(([id,shop,name,price,stock,image,desc])=>[id,shop,name,price,Math.min(stock,2+(id*5)%7),cuisinePhoto[shop]||image,desc]);
