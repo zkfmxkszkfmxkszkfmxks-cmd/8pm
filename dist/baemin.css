@@ -127,3 +127,25 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .owner-shop-banner strong { font-size: 1rem; }
 .owner-shop-banner small { margin-top: 4px; color: #587b76; font-size: .72rem; }
 .owner-draft-shop { padding: 10px 12px; margin-top: 14px; background: #e9f8f5; border-radius: 10px; color: #087f7a; font-weight: 800; font-size: .78rem; }
+.owner-order-card { padding: 17px; margin: 12px 0; border: 1px solid #dceeea; border-radius: 16px; background: #fff; }
+.owner-order-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.owner-order-top strong { font-size: .95rem; }
+.owner-order-card > small { display: block; margin: 5px 0 14px; color: #7e9691; font-size: .7rem; }
+.owner-status { padding: 6px 9px; border-radius: 8px; background: #fff3de; color: #93620d; font-size: .69rem; font-weight: 800; white-space: nowrap; }
+.owner-status.accepted, .owner-status.preparing { background: #e4f7f3; color: #087f7a; }
+.owner-status.ready { background: #dff3e7; color: #25744e; }
+.owner-order-items { padding: 13px 0; border-top: 1px solid #edf2f0; border-bottom: 1px solid #edf2f0; }
+.owner-order-items div { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; font-size: .83rem; }
+.owner-order-items b { white-space: nowrap; }
+.owner-eta { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; font-size: .79rem; }
+.owner-eta strong { color: #087f7a; font-size: .96rem; }
+.owner-order-action { margin-top: 14px; }
+.owner-ready { padding: 12px; margin-top: 14px; border-radius: 10px; background: #e4f7f3; color: #087f7a; text-align: center; font-size: .8rem; font-weight: 800; }
+.pickup-map { position: relative; height: 280px; margin: 16px 0 4px; overflow: hidden; border: 1px solid #cde6e2; border-radius: 16px; background: #e9f5ef; }
+.pickup-map-fallback { position: absolute; inset: 0; background: repeating-linear-gradient(30deg, transparent 0 38px, #d3e7df 39px 41px, transparent 42px 78px), repeating-linear-gradient(120deg, transparent 0 46px, #cfe3db 47px 49px, transparent 50px 92px); }
+.pickup-map-fallback svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pickup-map-pin { position: absolute; display: grid; place-items: center; width: 28px; height: 28px; transform: translate(-50%,-50%); border: 2px solid #fff; border-radius: 50%; background: #008d87; box-shadow: 0 3px 10px #124b4666; color: #fff; font-size: .76rem; font-weight: 900; }
+.pickup-map-pin.start { background: #243d3b; }
+.pickup-kakao-map { position: absolute; inset: 0; z-index: 2; display: none; }
+.pickup-kakao-label { display: inline-block; min-width: 24px; padding: 4px 6px; border-radius: 8px; background: #008d87; color: #fff; box-shadow: 0 2px 8px #124b4666; text-align: center; font-size: 12px; font-weight: 900; }
+.pickup-map-caption { color: #7b928d; font-size: .69rem; line-height: 1.5; }
