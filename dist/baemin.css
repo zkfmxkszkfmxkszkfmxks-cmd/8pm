@@ -180,6 +180,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .delete-order-actions { display: flex; gap: 9px; }
 .delete-order-actions button { flex: 1; min-height: 42px; border-radius: 11px; cursor: pointer; font-weight: 800; }
 .delete-order-confirm { border: 1px solid #cd5d58; background: #cd5d58; color: #fff; }
+.form-label .desc-hint { color: #6b8680; font-size: .7rem; font-weight: 500; line-height: 1.5; }
+.form-label textarea { margin-top: 0; }
+.alley-discount-note { margin: 0 2px 8px; color: #5b7770; font-size: .75rem; line-height: 1.5; }
 
 /* 화면 전환과 상호작용 */
 @keyframes page-arrive { from { opacity: .55; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
