@@ -24,15 +24,17 @@ state.demoOwnerOrders=Array.isArray(state.demoOwnerOrders)?state.demoOwnerOrders
 state.cart=Array.isArray(state.cart)?state.cart:[];
 state.cartSet=Array.isArray(state.cartSet)?state.cartSet:null;
 state.font=Number(state.font)||1;
-const DATA_VERSION=7;let migrated=false;
+const DATA_VERSION=7;let migrated=false,photosMigrated=false;
 if(state.seedVersion!==DATA_VERSION||!state.menus.some(m=>m.date===day())){const custom=state.menus.filter(m=>!m.sample&&m.date===day()).map(m=>{const priced=m.originalPrice?m:{...m,originalPrice:m.price,discountRate:discountRate(m.id),price:salePrice(m.price,m.id)};return {...priced,surplusReason:priced.surplusReason||SURPLUS_REASONS[0]}});state.menus=[...custom,...samples.map(m=>({...m}))];state.cart=[];state.cartSet=null;state.seedVersion=DATA_VERSION;migrated=true;}
+const sampleImageById=new Map(samples.map(m=>[m.id,m.image]));
+for(const menu of state.menus){const nextImage=menu.sample&&sampleImageById.get(menu.id);if(nextImage&&menu.image!==nextImage){menu.image=nextImage;photosMigrated=true}}
 state.area=state.area||'';
 let kakaoMap=null,pickupMapView=null;let storyFilter='',settingsOpen=false;let feedQuery='',mapQuery='',aiText='',aiResult=null,draft=null,photo=null,selectedShop=null,recognition=null,lastViewKey=null;
 const motionAllowed=()=>!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const revealObserver=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');revealObserver.unobserve(entry.target)}})},{rootMargin:'0px 0px 40px 0px',threshold:.08}):null;
 function revealCards(){if(!motionAllowed()||!revealObserver)return;document.querySelectorAll('.main .post,.main .owner-order-card,.main .manage-item,.main .map-list .shop-row').forEach((el,i)=>{el.classList.add('reveal-ready');el.style.setProperty('--reveal-delay',Math.min(i,5)*45+'ms');revealObserver.observe(el)})}
 const persist=()=>{try{localStorage.setItem('hangolmok-v2',JSON.stringify(state))}catch{toast('이 기기의 저장 공간이 부족합니다.')}};
-if(migrated)persist();
+if(migrated||photosMigrated)persist();
 const shop=id=>shops.find(s=>s.id===id)||shops[0];
 const active=()=>state.menus.filter(m=>m.date===day());
 const discountPercent=m=>Math.round((1-m.price/(m.originalPrice||m.price))*100);

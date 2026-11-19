@@ -85,4 +85,4 @@ window.SEOUL_MENU_DEFS=[
 ];
 const cuisinePhoto={rice:'korean-meal',euljiro:'korean-meal',songpa:'korean-meal',yeonnam:'western-meal',itaewon:'western-meal',konkuk:'western-meal',mia:'chinese-meal',cafe:'chinese-meal',gwanghwa:'japanese-meal',jamsil:'japanese-meal'};
 window.SEOUL_SHOPS.forEach(s=>{if(cuisinePhoto[s.id])s.image=cuisinePhoto[s.id]});
-window.SEOUL_MENU_DEFS=window.SEOUL_MENU_DEFS.map(([id,shop,name,price,stock,image,desc])=>[id,shop,name,price,Math.min(stock,2+(id*5)%7),cuisinePhoto[shop]||image,desc]);
+window.SEOUL_MENU_DEFS=window.SEOUL_MENU_DEFS.map(([id,shop,name,price,stock,image,desc])=>[id,shop,name,price,Math.min(stock,2+(id*5)%7),`menu-${id}`,desc]);
