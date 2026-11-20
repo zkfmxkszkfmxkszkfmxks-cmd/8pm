@@ -1,8 +1,9 @@
-// 추천 흐름: 요청 해석 → 현재 재고와 거리 확인 → 메뉴 순위 계산 → 예산 안에서 조합 생성.
+// 추천 흐름: 요청 해석 → 현재 재고와 사용자 거리 확인 → 메뉴 순위 계산 → 가게 간 1km와 예산 안에서 조합 생성.
 // 추후 AI가 해석 결과를 제공해도 위치·재고·예산 검증은 이 파이프라인에서 수행한다.
 (function (root) {
   const MAX_DISTANCE_KM = 3;
   const NEARBY_DISTANCE_KM = 1;
+  const MAX_SHOP_GAP_KM = 1;
   const FOOD_PATTERN = /밥|식사|든든|점심|저녁|한식|양식|중식|일식|정식|찌개|파스타|면|돈카츠|덮밥|우동/;
   const SWEET_PATTERN = /디저트|빵|달콤|스콘|크루아상/;
   const DRINK_PATTERN = /커피|라테|아메리카노|카페인/;
@@ -64,15 +65,18 @@
       + Math.min(3, 8 / (menu.stock + 1)) - km;
   }
 
-  function assembleSet(candidates, intent) {
+  function assembleSet(candidates, intent, distance) {
     let remaining = intent.budget;
     const picked = new Map();
+    const selectedShops = new Map();
     const target = Math.min(intent.people * 2, 6);
     for (let round = 0; round < 3 && [...picked.values()].reduce((n, qty) => n + qty, 0) < target; round++) {
-      for (const { menu } of candidates) {
+      for (const { menu, shop } of candidates) {
         const qty = picked.get(menu.id) || 0;
         if (menu.price > remaining || qty >= Math.min(menu.stock, intent.people)) continue;
+        if (!selectedShops.has(shop.id) && [...selectedShops.values()].some(other => distance(other, shop) > MAX_SHOP_GAP_KM)) continue;
         picked.set(menu.id, qty + 1);
+        selectedShops.set(shop.id, shop);
         remaining -= menu.price;
         if ([...picked.values()].reduce((n, count) => n + count, 0) >= target) break;
       }
@@ -85,7 +89,7 @@
     const inventory = prepareInventory(menus, shops, origin, distance);
     const candidates = inventory.filter(({ menu }) => intent.coffee || !DRINK_PATTERN.test(menu.name));
     candidates.sort((a, b) => Number(b.km <= NEARBY_DISTANCE_KM) - Number(a.km <= NEARBY_DISTANCE_KM) || rankCandidate(b, intent) - rankCandidate(a, intent) || a.km - b.km || a.menu.price - b.menu.price || a.menu.id - b.menu.id);
-    const set = assembleSet(candidates, intent);
+    const set = assembleSet(candidates, intent, distance);
     const discount = set.items.length ? setDiscount(set.total) : 0;
     return {
       ...intent, ...set, discount,
