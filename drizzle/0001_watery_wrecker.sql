@@ -1,0 +1,1 @@
+ALTER TABLE `products` ADD `closing_label` text DEFAULT '18:00' NOT NULL;
