@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       requireOwner(user);
       const ownerShop=await selectedOwnerShop(db,body.shopId);
       const name=text(body.name,40), description=text(body.description,300)||"마감 상품을 판매합니다", originalPrice=int(body.originalPrice), stock=int(body.stock), closing=text(body.closing,5);
-      if (!name||!Number.isSafeInteger(originalPrice)||originalPrice<100||!Number.isSafeInteger(stock)||stock<0||stock>9999) throw new ApiError(400,"invalid_product");
+      if (!name||!Number.isSafeInteger(originalPrice)||originalPrice<100||!Number.isSafeInteger(stock)||stock<0||stock>5) throw new ApiError(400,"invalid_product");
       const closeAt=closingMillis(today(),closing);
       if(action==="product-create") {
         const productId=id(), image=text(body.image,300);

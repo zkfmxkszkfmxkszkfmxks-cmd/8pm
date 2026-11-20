@@ -79,9 +79,26 @@ export async function ensureSeed(db: D1Database) {
     }
     await db.batch(statements);
   }
+  // Bring previously deployed fictional shops and inventory in line with the current demo fixtures.
+  const previousArea: Record<string, string> = { yeonnam: "연남", mangwon: "망원", euljiro: "을지로", ikseon: "익선", gwanghwa: "광화문", itaewon: "이태원", hannam: "한남", yeouido: "여의도", gangnam: "강남" };
+  const moved = seedData.shops.filter(shop => Object.hasOwn(previousArea, shop.id));
+  const existingMoved = await db.prepare("SELECT area FROM shops WHERE id=?").bind(moved[0].id).first<Row>();
+  if (existingMoved?.area !== "성수동") {
+    const changes: D1PreparedStatement[] = [];
+    for (const shop of moved) {
+      changes.push(db.prepare("UPDATE shops SET name=?,area=?,address=?,lat=?,lng=? WHERE id=? AND sample=1")
+        .bind(shop.name, shop.area, shop.address, shop.lat, shop.lng, shop.id));
+      const oldArea = previousArea[shop.id];
+      changes.push(db.prepare("UPDATE products SET name=REPLACE(name,?,?),description=REPLACE(description,?,?) WHERE shop_id=? AND sample=1")
+        .bind(oldArea, "성수", oldArea, "성수", shop.id));
+    }
+    await db.batch(changes);
+  }
   const date = today();
   await db.prepare("UPDATE products SET listing_date=?,stock=initial_stock,updated_at=? WHERE sample=1 AND listing_date<>?")
     .bind(date, now(), date).run();
+  await db.prepare("UPDATE products SET stock=MIN(stock,5),initial_stock=MIN(initial_stock,5),updated_at=? WHERE stock>5 OR initial_stock>5")
+    .bind(now()).run();
 }
 
 export function productForClient(row: Row) {

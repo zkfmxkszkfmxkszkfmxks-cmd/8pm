@@ -1,89 +1,89 @@
 ﻿id,shop_id,name,description,original_price_krw,discount_rate_percent,discounted_price_krw,initial_stock,image
-1,bake,딸기 크루아상,바삭한 크루아상에 달콤한 오후 한 조각,4500,30,3200,7,assets/menu-1.jpg
+1,bake,딸기 크루아상,바삭한 크루아상에 달콤한 오후 한 조각,4500,30,3200,5,assets/menu-1.jpg
 2,cafe,성수 수제 짜장면,진한 춘장 소스로 볶아낸 면,9500,25,7100,5,assets/menu-2.jpg
 3,rice,성수 제육덮밥,매콤한 제육과 따뜻한 밥 한 끼,10500,24,8000,3,assets/menu-3.jpg
-4,bake,버터 스콘,"겉은 바삭, 속은 촉촉",3500,30,2500,8,assets/menu-4.jpg
-5,cafe,해물 짬뽕,해물과 채소를 넣은 칼칼한 국물,11500,25,8600,6,assets/menu-5.jpg
+4,bake,버터 스콘,"겉은 바삭, 속은 촉촉",3500,30,2500,5,assets/menu-4.jpg
+5,cafe,해물 짬뽕,해물과 채소를 넣은 칼칼한 국물,11500,25,8600,5,assets/menu-5.jpg
 6,rice,소고기뭇국 정식,국과 반찬을 든든하게 담은 집밥,11000,24,8400,4,assets/menu-6.jpg
 7,bake,오늘의 샌드위치,싱싱한 채소를 넉넉하게,6500,30,4600,2,assets/menu-7.jpg
-8,cafe,바삭한 군만두,한 접시로 즐기는 갓 구운 만두,7500,29,5300,7,assets/menu-8.jpg
+8,cafe,바삭한 군만두,한 접시로 즐기는 갓 구운 만두,7500,29,5300,5,assets/menu-8.jpg
 9,rice,김치볶음밥,계란을 얹은 골목식당 볶음밥,9000,24,6800,5,assets/menu-9.jpg
 10,yeonnam,토마토 미트 파스타,오늘 준비한 토마토 미트 파스타,13500,30,9500,3,assets/menu-10.jpg
-11,yeonnam,버섯 크림 리조또,오늘 준비한 버섯 크림 리조또,14200,29,10100,8,assets/menu-11.jpg
-12,yeonnam,시저 샐러드,오늘 준비한 시저 샐러드,10500,24,8000,6,assets/menu-12.jpg
+11,yeonnam,버섯 크림 리조또,오늘 준비한 버섯 크림 리조또,14200,29,10100,5,assets/menu-11.jpg
+12,yeonnam,시저 샐러드,오늘 준비한 시저 샐러드,10500,24,8000,5,assets/menu-12.jpg
 13,mangwon,병입 과일 주스,오늘 준비한 병입 과일 주스,4300,30,3100,4,assets/menu-13.jpg
 14,mangwon,소풍 주먹밥,오늘 준비한 소풍 주먹밥,2800,29,2000,2,assets/menu-14.jpg
-15,mangwon,한입 에그 샐러드,오늘 준비한 한입 에그 샐러드,5800,24,4400,7,assets/menu-15.jpg
-16,euljiro,을지로 김치찌개,오늘 준비한 을지로 김치찌개,10000,23,7700,5,assets/menu-16.jpg
+15,mangwon,한입 에그 샐러드,오늘 준비한 한입 에그 샐러드,5800,24,4400,5,assets/menu-15.jpg
+16,euljiro,성수 김치찌개,오늘 준비한 성수 김치찌개,10000,23,7700,5,assets/menu-16.jpg
 17,euljiro,돼지불백 정식,오늘 준비한 돼지불백 정식,12000,29,8500,3,assets/menu-17.jpg
-18,euljiro,계란말이 한 접시,오늘 준비한 계란말이 한 접시,7500,24,5700,8,assets/menu-18.jpg
-19,ikseon,병입 카페라테,오늘 준비한 병입 카페라테,4900,23,3800,6,assets/menu-19.jpg
+18,euljiro,계란말이 한 접시,오늘 준비한 계란말이 한 접시,7500,24,5700,5,assets/menu-18.jpg
+19,ikseon,병입 카페라테,오늘 준비한 병입 카페라테,4900,23,3800,5,assets/menu-19.jpg
 20,ikseon,버터 스콘,오늘 준비한 버터 스콘,3800,29,2700,4,assets/menu-20.jpg
 21,ikseon,아침 크루아상,오늘 준비한 아침 크루아상,4600,28,3300,2,assets/menu-21.jpg
-22,gwanghwa,광화문 가츠동,오늘 준비한 광화문 가츠동,12500,23,9600,7,assets/menu-22.jpg
+22,gwanghwa,성수 가츠동,오늘 준비한 성수 가츠동,12500,23,9600,5,assets/menu-22.jpg
 23,gwanghwa,유부우동,오늘 준비한 유부우동,9500,29,6700,5,assets/menu-23.jpg
 24,gwanghwa,연어 오니기리 세트,오늘 준비한 연어 오니기리 세트,10500,28,7600,3,assets/menu-24.jpg
-25,itaewon,수제 함박스테이크,오늘 준비한 수제 함박스테이크,16800,23,12900,8,assets/menu-25.jpg
-26,itaewon,버섯 크림 파스타,오늘 준비한 버섯 크림 파스타,14500,29,10300,6,assets/menu-26.jpg
+25,itaewon,수제 함박스테이크,오늘 준비한 수제 함박스테이크,16800,23,12900,5,assets/menu-25.jpg
+26,itaewon,버섯 크림 파스타,오늘 준비한 버섯 크림 파스타,14500,29,10300,5,assets/menu-26.jpg
 27,itaewon,치킨 샐러드,오늘 준비한 치킨 샐러드,11500,28,8300,4,assets/menu-27.jpg
-28,hannam,한남 버터 스콘,오늘 준비한 한남 버터 스콘,4200,23,3200,2,assets/menu-28.jpg
-29,hannam,아몬드 크루아상,오늘 준비한 아몬드 크루아상,5400,22,4200,7,assets/menu-29.jpg
+28,hannam,성수 버터 스콘,오늘 준비한 성수 버터 스콘,4200,23,3200,2,assets/menu-28.jpg
+29,hannam,아몬드 크루아상,오늘 준비한 아몬드 크루아상,5400,22,4200,5,assets/menu-29.jpg
 30,hannam,병입 바닐라 라테,오늘 준비한 병입 바닐라 라테,5300,28,3800,5,assets/menu-30.jpg
 31,yeouido,병입 콜드브루,오늘 준비한 병입 콜드브루,3500,23,2700,3,assets/menu-31.jpg
-32,yeouido,병입 카페라테,오늘 준비한 병입 카페라테,4800,22,3700,8,assets/menu-32.jpg
-33,yeouido,병입 오렌지 주스,오늘 준비한 병입 오렌지 주스,4300,28,3100,6,assets/menu-33.jpg
+32,yeouido,병입 카페라테,오늘 준비한 병입 카페라테,4800,22,3700,5,assets/menu-32.jpg
+33,yeouido,병입 오렌지 주스,오늘 준비한 병입 오렌지 주스,4300,28,3100,5,assets/menu-33.jpg
 34,gangnam,아침 샌드위치,오늘 준비한 아침 샌드위치,7400,23,5700,4,assets/menu-34.jpg
 35,gangnam,채소 듬뿍 덮밥,오늘 준비한 채소 듬뿍 덮밥,9500,22,7400,2,assets/menu-35.jpg
-36,gangnam,에그 샐러드 볼,오늘 준비한 에그 샐러드 볼,6500,28,4700,7,assets/menu-36.jpg
+36,gangnam,에그 샐러드 볼,오늘 준비한 에그 샐러드 볼,6500,28,4700,5,assets/menu-36.jpg
 37,sinsa,신사 크루아상,오늘 준비한 신사 크루아상,5200,27,3800,5,assets/menu-37.jpg
 38,sinsa,메이플 스콘,오늘 준비한 메이플 스콘,4300,22,3400,3,assets/menu-38.jpg
-39,sinsa,그린 샌드위치,오늘 준비한 그린 샌드위치,7500,28,5400,8,assets/menu-39.jpg
-40,jamsil,잠실 돈카츠 정식,오늘 준비한 잠실 돈카츠 정식,14500,27,10600,6,assets/menu-40.jpg
+39,sinsa,그린 샌드위치,오늘 준비한 그린 샌드위치,7500,28,5400,5,assets/menu-39.jpg
+40,jamsil,잠실 돈카츠 정식,오늘 준비한 잠실 돈카츠 정식,14500,27,10600,5,assets/menu-40.jpg
 41,jamsil,소고기 규동,오늘 준비한 소고기 규동,11800,22,9200,4,assets/menu-41.jpg
 42,jamsil,새우튀김 한 접시,오늘 준비한 새우튀김 한 접시,9900,21,7800,2,assets/menu-42.jpg
-43,songpa,송파 산채비빔밥,오늘 준비한 송파 산채비빔밥,10500,27,7700,7,assets/menu-43.jpg
+43,songpa,송파 산채비빔밥,오늘 준비한 송파 산채비빔밥,10500,27,7700,5,assets/menu-43.jpg
 44,songpa,차돌 된장찌개,오늘 준비한 차돌 된장찌개,11500,22,9000,5,assets/menu-44.jpg
 45,songpa,해물 순두부찌개,오늘 준비한 해물 순두부찌개,11000,21,8700,3,assets/menu-45.jpg
-46,konkuk,건대 토마토 파스타,오늘 준비한 건대 토마토 파스타,13500,27,9900,8,assets/menu-46.jpg
-47,konkuk,베이컨 알리오올리오,오늘 준비한 베이컨 알리오올리오,13800,22,10800,6,assets/menu-47.jpg
+46,konkuk,건대 토마토 파스타,오늘 준비한 건대 토마토 파스타,13500,27,9900,5,assets/menu-46.jpg
+47,konkuk,베이컨 알리오올리오,오늘 준비한 베이컨 알리오올리오,13800,22,10800,5,assets/menu-47.jpg
 48,konkuk,버섯 크림 리조또,오늘 준비한 버섯 크림 리조또,14200,21,11200,4,assets/menu-48.jpg
 49,nowon,햇살 버터 스콘,오늘 준비한 햇살 버터 스콘,3900,27,2800,2,assets/menu-49.jpg
-50,nowon,노원 크루아상,오늘 준비한 노원 크루아상,4700,26,3500,7,assets/menu-50.jpg
+50,nowon,노원 크루아상,오늘 준비한 노원 크루아상,4700,26,3500,5,assets/menu-50.jpg
 51,nowon,오늘의 샌드위치,오늘 준비한 오늘의 샌드위치,6800,21,5400,5,assets/menu-51.jpg
 52,mia,미아 수제 짜장면,오늘 준비한 미아 수제 짜장면,9500,27,6900,3,assets/menu-52.jpg
-53,mia,해물 짬뽕,오늘 준비한 해물 짬뽕,11500,26,8500,8,assets/menu-53.jpg
-54,mia,찹쌀 탕수육,오늘 준비한 찹쌀 탕수육,17500,21,13800,6,assets/menu-54.jpg
+53,mia,해물 짬뽕,오늘 준비한 해물 짬뽕,11500,26,8500,5,assets/menu-53.jpg
+54,mia,찹쌀 탕수육,오늘 준비한 찹쌀 탕수육,17500,21,13800,5,assets/menu-54.jpg
 55,guro,출근길 샌드위치,오늘 준비한 출근길 샌드위치,6600,20,5200,4,assets/menu-55.jpg
 56,guro,병입 콜드브루,오늘 준비한 병입 콜드브루,3000,26,2200,2,assets/menu-56.jpg
-57,guro,병입 생오렌지 주스,오늘 준비한 병입 생오렌지 주스,4100,21,3200,7,assets/menu-57.jpg
+57,guro,병입 생오렌지 주스,오늘 준비한 병입 생오렌지 주스,4100,21,3200,5,assets/menu-57.jpg
 58,mokdong,목동 에그 브런치,오늘 준비한 목동 에그 브런치,7200,20,5700,5,assets/menu-58.jpg
 59,mokdong,주말 샌드위치,오늘 준비한 주말 샌드위치,7300,26,5400,3,assets/menu-59.jpg
-60,mokdong,병입 카페라테,오늘 준비한 병입 카페라테,4900,21,3900,8,assets/menu-60.jpg
-61,bake,성수 소금빵,겉은 바삭하고 속은 촉촉한 오늘의 소금빵,3200,20,2500,6,assets/menu-61.jpg
+60,mokdong,병입 카페라테,오늘 준비한 병입 카페라테,4900,21,3900,5,assets/menu-60.jpg
+61,bake,성수 소금빵,겉은 바삭하고 속은 촉촉한 오늘의 소금빵,3200,20,2500,5,assets/menu-61.jpg
 62,bake,시나몬 스콘,따뜻한 향이 좋은 시나몬 스콘,4200,26,3100,4,assets/menu-62.jpg
 63,bake,올리브 치아바타,올리브를 넣어 든든하게 구운 빵,5800,25,4400,2,assets/menu-63.jpg
-64,bake,초코 휘낭시에,진한 초콜릿을 담은 작은 디저트,2800,20,2200,7,assets/menu-64.jpg
+64,bake,초코 휘낭시에,진한 초콜릿을 담은 작은 디저트,2800,20,2200,5,assets/menu-64.jpg
 65,rice,소불고기 정식,양파와 소불고기를 함께 낸 정식,13000,26,9600,5,assets/menu-65.jpg
 66,rice,참치김치찌개,얼큰하게 끓인 오늘의 찌개,10500,25,7900,3,assets/menu-66.jpg
-67,euljiro,콩나물국밥,뜨끈한 국물과 아삭한 콩나물,9000,20,7200,8,assets/menu-67.jpg
-68,euljiro,고등어구이 정식,노릇하게 구운 생선과 반찬,12500,26,9300,6,assets/menu-68.jpg
+67,euljiro,콩나물국밥,뜨끈한 국물과 아삭한 콩나물,9000,20,7200,5,assets/menu-67.jpg
+68,euljiro,고등어구이 정식,노릇하게 구운 생선과 반찬,12500,26,9300,5,assets/menu-68.jpg
 69,songpa,닭갈비 덮밥,매콤한 닭갈비를 올린 한 그릇,11000,25,8300,4,assets/menu-69.jpg
 70,songpa,한우 육개장,깊은 국물의 든든한 식사,12000,20,9600,2,assets/menu-70.jpg
-71,yeonnam,봉골레 파스타,조개와 마늘 향을 살린 파스타,14800,30,10400,7,assets/menu-71.jpg
+71,yeonnam,봉골레 파스타,조개와 마늘 향을 살린 파스타,14800,30,10400,5,assets/menu-71.jpg
 72,yeonnam,바질 페스토 리조또,바질 향 가득한 따뜻한 리조또,14500,25,10900,5,assets/menu-72.jpg
 73,itaewon,미트볼 토마토 파스타,토마토 소스와 수제 미트볼,15000,20,12000,3,assets/menu-73.jpg
-74,itaewon,치즈 오믈렛 플레이트,치즈를 넣은 달걀과 곁들임 채소,12800,30,9000,8,assets/menu-74.jpg
-75,konkuk,쉬림프 로제 파스타,새우를 넣은 부드러운 로제 소스,15800,25,11900,6,assets/menu-75.jpg
+74,itaewon,치즈 오믈렛 플레이트,치즈를 넣은 달걀과 곁들임 채소,12800,30,9000,5,assets/menu-74.jpg
+75,konkuk,쉬림프 로제 파스타,새우를 넣은 부드러운 로제 소스,15800,25,11900,5,assets/menu-75.jpg
 76,konkuk,치킨 그릴 플레이트,구운 닭고기와 따뜻한 채소,16200,24,12300,4,assets/menu-76.jpg
 77,mia,새우 볶음밥,고슬고슬하게 볶은 새우와 밥,10500,30,7400,2,assets/menu-77.jpg
-78,mia,깐풍기,매콤달콤한 소스의 닭고기 요리,18500,25,13900,7,assets/menu-78.jpg
+78,mia,깐풍기,매콤달콤한 소스의 닭고기 요리,18500,25,13900,5,assets/menu-78.jpg
 79,mia,고추잡채,피망과 고기를 볶아낸 한 접시,16800,24,12800,5,assets/menu-79.jpg
 80,cafe,사천식 짬뽕,칼칼한 국물과 채소를 넉넉히,12500,30,8800,3,assets/menu-80.jpg
-81,cafe,계란 새우볶음밥,계란과 새우를 듬뿍 넣은 볶음밥,11000,25,8300,8,assets/menu-81.jpg
-82,cafe,칠리새우,매콤한 칠리소스를 입힌 새우,18900,24,14400,6,assets/menu-82.jpg
+81,cafe,계란 새우볶음밥,계란과 새우를 듬뿍 넣은 볶음밥,11000,25,8300,5,assets/menu-81.jpg
+82,cafe,칠리새우,매콤한 칠리소스를 입힌 새우,18900,24,14400,5,assets/menu-82.jpg
 83,gwanghwa,치킨 가라아게 정식,바삭한 닭튀김과 밥 한 상,13500,30,9500,4,assets/menu-83.jpg
 84,gwanghwa,시원한 냉소바,메밀 향과 시원한 육수,10500,29,7500,2,assets/menu-84.jpg
-85,gwanghwa,참치 오니기리 세트,참치와 밥으로 만든 간편한 세트,9500,24,7200,7,assets/menu-85.jpg
+85,gwanghwa,참치 오니기리 세트,참치와 밥으로 만든 간편한 세트,9500,24,7200,5,assets/menu-85.jpg
 86,jamsil,일본식 카레라이스,천천히 끓인 카레와 밥,11500,30,8100,5,assets/menu-86.jpg
 87,jamsil,새우 텐동,새우튀김을 올린 덮밥,13500,29,9600,3,assets/menu-87.jpg
-88,jamsil,야끼소바,채소와 면을 볶아낸 한 접시,12000,24,9100,8,assets/menu-88.jpg
+88,jamsil,야끼소바,채소와 면을 볶아낸 한 접시,12000,24,9100,5,assets/menu-88.jpg
