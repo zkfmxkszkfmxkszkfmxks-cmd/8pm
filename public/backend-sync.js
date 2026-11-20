@@ -149,7 +149,7 @@ document.addEventListener('click',event=>{
     const menu=active().find(item=>item.id===productId),item=state.cart.find(entry=>entry.id===productId);
     if(!menu||menu.stock<=(item?.qty||0))return toast('남은 재고를 확인해 주세요.');
     if(item)item.qty++;else state.cart.push({id:productId,qty:1});
-    persist();render();cartPage();return;
+    persist();render();toast('장바구니에 담았어요.');return;
   }
   if(action==='order')return void withServer(async()=>{
     if(!state.cart.length)return;
