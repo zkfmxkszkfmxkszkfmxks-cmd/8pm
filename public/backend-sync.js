@@ -8,8 +8,8 @@ shopCard=function(group){
   const own=state.mode==='owner'&&group.shop.id===OWNER_SHOP_ID;
   const voucher=group.shop.acceptsVoucher;
   const label=own?'<div class="owner-feed-label">내 가게</div>':'';
-  const voucherLabel=`<div class="voucher-feed-label ${voucher?'available':'unavailable'}">${voucher?'상품권 사용 가능':'상품권 사용 불가'}</div>`;
-  return originalShopCard(group).replace('<div class="post-top">',label+voucherLabel+'<div class="post-top">');
+  const voucherLabel=`<span class="stock voucher-feed-label ${voucher?'available':'unavailable'}">${voucher?'상품권 사용 가능':'상품권 사용 불가'}</span>`;
+  return originalShopCard(group).replace('<div class="post-top">',label+'<div class="post-top">').replace(/(<span class="stock">[^<]*<\/span>)/,`<div class="post-badges">$1${voucherLabel}</div>`);
 };
 const originalManagePage=managePage;
 managePage=function(){
