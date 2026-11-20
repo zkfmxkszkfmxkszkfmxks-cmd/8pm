@@ -8,13 +8,13 @@ shopCard=function(group){
   const own=state.mode==='owner'&&group.shop.id===OWNER_SHOP_ID;
   const voucher=group.shop.acceptsVoucher;
   const label=own?'<div class="owner-feed-label">내 가게</div>':'';
-  const voucherLabel=`<span class="stock voucher-feed-label ${voucher?'available':'unavailable'}">${voucher?'상품권 사용 가능':'상품권 사용 불가'}</span>`;
+  const voucherLabel=`<span class="stock voucher-feed-label ${voucher?'available':'unavailable'}">${voucher?'서울사랑상품권 사용 가능':'서울사랑상품권 사용 불가'}</span>`;
   return originalShopCard(group).replace('<div class="post-top">',label+'<div class="post-top">').replace(/(<span class="stock">[^<]*<\/span>)/,`<div class="post-badges">$1${voucherLabel}</div>`);
 };
 const originalManagePage=managePage;
 managePage=function(){
   const selected=shop(OWNER_SHOP_ID),accepts=!!selected.acceptsVoucher;
-  return originalManagePage()+`<section class="panel voucher-settings"><div class="panel-title"><h2>가게 설정</h2></div><div class="voucher-settings-row"><div><strong>상품권 사용</strong><p>손님 피드에 사용 가능 여부가 표시됩니다.</p></div><button type="button" data-action="voucher-toggle" role="switch" aria-checked="${accepts}" aria-label="상품권 사용 ${accepts?'가능':'불가'}" class="voucher-switch ${accepts?'on':''}"><span></span></button></div><small class="voucher-settings-state">현재 ${accepts?'사용 가능':'사용 불가'}</small></section>`;
+  return originalManagePage()+`<section class="panel voucher-settings"><div class="panel-title"><h2>가게 설정</h2></div><div class="voucher-settings-row"><div><strong>서울사랑상품권 사용</strong><p>손님 피드에 사용 가능 여부가 표시됩니다.</p></div><button type="button" data-action="voucher-toggle" role="switch" aria-checked="${accepts}" aria-label="서울사랑상품권 사용 ${accepts?'가능':'불가'}" class="voucher-switch ${accepts?'on':''}"><span></span></button></div><small class="voucher-settings-state">현재 ${accepts?'사용 가능':'사용 불가'}</small></section>`;
 };
 const originalRender=render;
 render=function(){
@@ -100,7 +100,7 @@ document.addEventListener('click',event=>{
     if(!backendSession.owner||!ownerShopId)return;
     button.disabled=true;
     await api('shop-voucher',{shopId:ownerShopId,acceptsVoucher:!shop(ownerShopId).acceptsVoucher});
-    await refreshServerData();toast('상품권 사용 설정을 저장했어요.');
+    await refreshServerData();toast('서울사랑상품권 사용 설정을 저장했어요.');
   });
   if(action==='demo-logout')return void withServer(async()=>{
     await fetch('/api/demo-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'logout'})});
