@@ -124,6 +124,19 @@ export async function POST(request: Request) {
       else await db.prepare("UPDATE orders SET customer_hidden_at=? WHERE id=? AND customer_user_id=?").bind(timestamp,orderId,user.userId).run();
       return json({ok:true});
     }
+    if (action === "hide-all-orders") {
+      if(body.side === "owner") {
+        requireOwner(user);
+        const ownerShop=await selectedOwnerShop(db,body.shopId);
+        const result=await db.prepare("UPDATE order_pickups SET owner_hidden_at=? WHERE shop_id=? AND owner_hidden_at IS NULL").bind(timestamp,ownerShop).run();
+        return json({ok:true,count:result.meta.changes});
+      }
+      if(body.side === "customer") {
+        const result=await db.prepare("UPDATE orders SET customer_hidden_at=? WHERE customer_user_id=? AND customer_hidden_at IS NULL").bind(timestamp,user.userId).run();
+        return json({ok:true,count:result.meta.changes});
+      }
+      throw new ApiError(400,"invalid_order_side");
+    }
     if (action === "owner-status") {
       requireOwner(user);
       const ownerShop=await selectedOwnerShop(db,body.shopId);

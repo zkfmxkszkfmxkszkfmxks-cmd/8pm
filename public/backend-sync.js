@@ -34,6 +34,16 @@ const originalOrderCard=orderCard;
 orderCard=function(order){const label=paymentLabel(order.paymentMethod);return originalOrderCard(order).replace('<div class="order-price-total">',`${label?`<div class="order-payment">결제 방법 · ${label}${order.useVoucher?' · 서울사랑상품권 사용':''}</div>`:''}<div class="order-price-total">`)};
 const originalOwnerOrderCard=ownerOrderCard;
 ownerOrderCard=function(order){const label=paymentLabel(order.paymentMethod);return originalOwnerOrderCard(order).replace('<div class="order-price-total">',`${label?`<div class="order-payment">결제 방법 · ${label}${order.useVoucher?' · 서울사랑상품권 사용':''}</div>`:''}<div class="order-price-total">`)};
+const originalOrdersPage=ordersPage;
+ordersPage=function(){
+  const html=originalOrdersPage(),count=state.orders.filter(order=>!state.customerHiddenOrderIds.includes(order.id)).length;
+  return count?html.replace('<section class="panel">',`<div class="order-bulk-actions"><button type="button" data-action="delete-all-orders" data-value="customer">전체 삭제</button></div><section class="panel">`):html;
+};
+const originalOwnerOrdersPage=ownerOrdersPage;
+ownerOrdersPage=function(){
+  const html=originalOwnerOrdersPage(),count=ownerOrders().length;
+  return count?html.replace('<section class="panel">',`<div class="order-bulk-actions"><button type="button" data-action="delete-all-orders" data-value="owner">전체 삭제</button></div><section class="panel">`):html;
+};
 document.addEventListener('change',event=>{
   if(event.target.name==='payment-method'){
     checkoutMethod=event.target.value;
@@ -112,7 +122,7 @@ const withServer=async work=>{try{await work()}catch(error){if(error.message==='
 document.addEventListener('click',event=>{
   const button=event.target.closest('[data-action]');if(!button)return;
   const action=button.dataset.action, productId=Number(button.dataset.id), orderId=productId;
-  if(!['mode','demo-logout','owner-select-shop','owner-change-shop','voucher-toggle','like','add','order','owner-status','confirm-delete-order'].includes(action))return;
+  if(!['mode','demo-logout','owner-select-shop','owner-change-shop','voucher-toggle','like','add','order','owner-status','confirm-delete-order','delete-all-orders','confirm-delete-all-orders'].includes(action))return;
   event.preventDefault();event.stopImmediatePropagation();
   if(action==='mode')return;
   if(action==='owner-select-shop')return void withServer(async()=>{
@@ -154,6 +164,17 @@ document.addEventListener('click',event=>{
   if(action==='confirm-delete-order')return void withServer(async()=>{
     await api('hide-order',{orderId,side:button.dataset.value==='owner'?'owner':'customer',shopId:ownerShopId});
     close();await refreshServerData();toast('내역을 삭제했어요.');
+  });
+  if(action==='delete-all-orders'){
+    const side=button.dataset.value==='owner'?'owner':'customer';
+    const count=side==='owner'?ownerOrders().length:state.orders.filter(order=>!state.customerHiddenOrderIds.includes(order.id)).length;
+    if(!count)return;
+    overlay('전체 내역 삭제',`<p class="muted">주문 내역 ${count}건을 모두 삭제할까요?</p><div class="delete-order-actions"><button class="outline-button" data-action="close">취소</button><button class="delete-order-confirm" data-action="confirm-delete-all-orders" data-value="${side}">전체 삭제</button></div>`);
+    return;
+  }
+  if(action==='confirm-delete-all-orders')return void withServer(async()=>{
+    await api('hide-all-orders',{side:button.dataset.value==='owner'?'owner':'customer',shopId:ownerShopId});
+    close();await refreshServerData();toast('주문 내역을 모두 삭제했어요.');
   });
 },true);
 document.addEventListener('submit',event=>{
