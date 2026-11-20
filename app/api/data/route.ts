@@ -22,7 +22,7 @@ async function orderRows(db: D1Database, userId: string, owner: boolean, ownerSh
     const items = await db.prepare("SELECT * FROM order_items WHERE order_id=? ORDER BY id").bind(row.id).all<Row>();
     const pickups = await db.prepare("SELECT p.*,s.name,s.area,s.address,s.lat,s.lng FROM order_pickups p JOIN shops s ON s.id=p.shop_id WHERE p.order_id=? ORDER BY p.sequence").bind(row.id).all<Row>();
     const stops = pickups.results.map(s => ({ id: s.shop_id, name: s.name, area: s.area, address: s.address, lat: s.lat, lng: s.lng, pickup: new Intl.DateTimeFormat("ko-KR", {timeZone:"Asia/Seoul",hour:"2-digit",minute:"2-digit",hour12:false}).format(s.eta_at), status: s.status, items:items.results.filter(i=>i.shop_id===s.shop_id).map(i=>`${i.name} × ${i.quantity}`) }));
-    result.push({ id: Number(row.id), date: new Intl.DateTimeFormat("sv-SE", {timeZone:"Asia/Seoul",dateStyle:"short",timeStyle:"short"}).format(row.created_at), items: items.results.map(i => ({id:Number(i.product_id),shop:i.shop_id,name:i.name,qty:i.quantity,price:i.unit_price,setDiscount:i.set_discount})), subtotal:row.subtotal,setDiscount:row.set_discount,total:row.total,origin:{lat:row.origin_lat,lng:row.origin_lng},stops,status:owner?row.pickup_status:stops.every(s=>s.status==="completed")?"completed":stops[0]?.status||"waiting",completedAt:row.completed_at,sample:false });
+    result.push({ id: Number(row.id), date: new Intl.DateTimeFormat("sv-SE", {timeZone:"Asia/Seoul",dateStyle:"short",timeStyle:"short"}).format(row.created_at), items: items.results.map(i => ({id:Number(i.product_id),shop:i.shop_id,name:i.name,qty:i.quantity,price:i.unit_price,setDiscount:i.set_discount})), subtotal:row.subtotal,setDiscount:row.set_discount,total:row.total,paymentMethod:row.payment_method||"card",useVoucher:Boolean(row.use_voucher),origin:{lat:row.origin_lat,lng:row.origin_lng},stops,status:owner?row.pickup_status:stops.every(s=>s.status==="completed")?"completed":stops[0]?.status||"waiting",completedAt:row.completed_at,sample:false });
   }
   return result;
 }
@@ -72,6 +72,9 @@ export async function POST(request: Request) {
       return json({liked:!previous});
     }
     if (action === "order") {
+      const paymentMethod=text(body.paymentMethod??"card",20);
+      if(!["card","quick","onsite"].includes(paymentMethod)||(body.useVoucher!==undefined&&typeof body.useVoucher!=="boolean"))throw new ApiError(400,"invalid_payment_method");
+      if(body.useVoucher&&paymentMethod!=="onsite")throw new ApiError(400,"invalid_voucher_payment");
       const cart=Array.isArray(body.items)?body.items:[];
       if (!cart.length||cart.length>30) throw new ApiError(400,"invalid_items");
       const quantities=new Map<string,number>();
@@ -99,8 +102,9 @@ export async function POST(request: Request) {
       const shopIds=[...new Set(products.map(p=>p.shop_id))];
       const shopRows:Row[]=[];
       for (const shopId of shopIds) {const shop=await db.prepare("SELECT * FROM shops WHERE id=?").bind(shopId).first<Row>();if(shop)shopRows.push(shop);}
+      if(body.useVoucher&&!shopRows.every(shop=>Boolean(shop.accepts_voucher)))throw new ApiError(400,"voucher_unavailable");
       shopRows.sort((a,b)=>distanceKm(origin,{lat:Number(a.lat),lng:Number(a.lng)})-distanceKm(origin,{lat:Number(b.lat),lng:Number(b.lng)}));
-      const statements:D1PreparedStatement[]=[db.prepare("INSERT INTO orders (id,customer_user_id,subtotal,set_discount,total,origin_lat,origin_lng,created_at) VALUES (?,?,?,?,?,?,?,?)").bind(orderId,user.userId,subtotal,setDiscount,subtotal-setDiscount,origin.lat,origin.lng,timestamp)];
+      const statements:D1PreparedStatement[]=[db.prepare("INSERT INTO orders (id,customer_user_id,subtotal,set_discount,total,payment_method,use_voucher,origin_lat,origin_lng,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)").bind(orderId,user.userId,subtotal,setDiscount,subtotal-setDiscount,paymentMethod,body.useVoucher?1:0,origin.lat,origin.lng,timestamp)];
       let remainingDiscount=setDiscount;
       const lastEligible=setProducts.at(-1)?.id;
       for (let index=0;index<products.length;index++) {

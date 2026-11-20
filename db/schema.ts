@@ -55,6 +55,8 @@ export const orders = sqliteTable("orders", {
   subtotal: integer("subtotal").notNull(),
   setDiscount: integer("set_discount").notNull().default(0),
   total: integer("total").notNull(),
+  paymentMethod: text("payment_method").notNull().default("card"),
+  useVoucher: integer("use_voucher", { mode: "boolean" }).notNull().default(false),
   originLat: real("origin_lat").notNull(),
   originLng: real("origin_lng").notNull(),
   customerHiddenAt: integer("customer_hidden_at"),

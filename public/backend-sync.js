@@ -16,6 +16,31 @@ managePage=function(){
   const selected=shop(OWNER_SHOP_ID),accepts=!!selected.acceptsVoucher;
   return originalManagePage()+`<section class="panel voucher-settings"><div class="panel-title"><h2>가게 설정</h2></div><div class="voucher-settings-row"><div><strong>서울사랑상품권 사용</strong><p>손님 피드에 사용 가능 여부가 표시됩니다.</p></div><button type="button" data-action="voucher-toggle" role="switch" aria-checked="${accepts}" aria-label="서울사랑상품권 사용 ${accepts?'가능':'불가'}" class="voucher-switch ${accepts?'on':''}"><span></span></button></div><small class="voucher-settings-state">현재 ${accepts?'사용 가능':'사용 불가'}</small></section>`;
 };
+let checkoutMethod='card',checkoutVoucher=false;
+const paymentLabel=method=>({card:'카드',quick:'간편결제',onsite:'현장결제'})[method]||'';
+const originalCartPage=cartPage;
+cartPage=function(){
+  originalCartPage();
+  const sheet=document.querySelector('#overlay .sheet'),submit=sheet?.querySelector('[data-action="order"]');
+  if(!submit)return;
+  const selectedShops=[...new Set(state.cart.map(item=>active().find(menu=>menu.id===item.id)?.shop).filter(Boolean))];
+  const voucherAvailable=selectedShops.length>0&&selectedShops.every(id=>shop(id)?.acceptsVoucher);
+  if(!voucherAvailable)checkoutVoucher=false;
+  sheet.querySelector('#sheet-title').textContent='담은 메뉴 · 결제';
+  submit.textContent='주문 확정 · 픽업 동선 보기';
+  submit.insertAdjacentHTML('beforebegin',`<fieldset class="payment-methods"><legend>결제 방법</legend>${[['card','카드'],['quick','간편결제'],['onsite','현장결제']].map(([value,label])=>`<label class="payment-choice"><input type="radio" name="payment-method" value="${value}" ${checkoutMethod===value?'checked':''}><span>${label}</span></label>`).join('')}</fieldset><div class="voucher-check" ${checkoutMethod==='onsite'?'':'hidden'}><label><input type="checkbox" id="use-voucher" ${checkoutVoucher?'checked':''} ${voucherAvailable?'':'disabled'}><span>서울사랑상품권 사용</span></label>${voucherAvailable?'':'<small>담은 가게 중 상품권 사용이 불가능한 곳이 있어요.</small>'}</div>`);
+};
+const originalOrderCard=orderCard;
+orderCard=function(order){const label=paymentLabel(order.paymentMethod);return originalOrderCard(order).replace('<div class="order-price-total">',`${label?`<div class="order-payment">결제 방법 · ${label}${order.useVoucher?' · 서울사랑상품권 사용':''}</div>`:''}<div class="order-price-total">`)};
+const originalOwnerOrderCard=ownerOrderCard;
+ownerOrderCard=function(order){const label=paymentLabel(order.paymentMethod);return originalOwnerOrderCard(order).replace('<div class="order-price-total">',`${label?`<div class="order-payment">결제 방법 · ${label}${order.useVoucher?' · 서울사랑상품권 사용':''}</div>`:''}<div class="order-price-total">`)};
+document.addEventListener('change',event=>{
+  if(event.target.name==='payment-method'){
+    checkoutMethod=event.target.value;
+    const voucher=document.querySelector('.voucher-check');if(voucher)voucher.hidden=checkoutMethod!=='onsite';
+    if(checkoutMethod!=='onsite'){checkoutVoucher=false;const checkbox=document.querySelector('#use-voucher');if(checkbox)checkbox.checked=false;}
+  }else if(event.target.id==='use-voucher')checkoutVoucher=event.target.checked;
+});
 const originalRender=render;
 render=function(){
   originalRender();
@@ -87,7 +112,7 @@ const withServer=async work=>{try{await work()}catch(error){if(error.message==='
 document.addEventListener('click',event=>{
   const button=event.target.closest('[data-action]');if(!button)return;
   const action=button.dataset.action, productId=Number(button.dataset.id), orderId=productId;
-  if(!['mode','demo-logout','owner-select-shop','owner-change-shop','voucher-toggle','like','order','owner-status','confirm-delete-order'].includes(action))return;
+  if(!['mode','demo-logout','owner-select-shop','owner-change-shop','voucher-toggle','like','add','order','owner-status','confirm-delete-order'].includes(action))return;
   event.preventDefault();event.stopImmediatePropagation();
   if(action==='mode')return;
   if(action==='owner-select-shop')return void withServer(async()=>{
@@ -104,15 +129,21 @@ document.addEventListener('click',event=>{
   });
   if(action==='demo-logout')return void withServer(async()=>{
     await fetch('/api/demo-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'logout'})});
-    ownerShopId=null;sessionStorage.removeItem('owner-shop-id');state.likes=[];state.orders=[];state.ownerOrders=[];state.cart=[];state.cartSet=null;state.mode='guest';state.tab='feed';close();
+    ownerShopId=null;sessionStorage.removeItem('owner-shop-id');state.likes=[];state.orders=[];state.ownerOrders=[];state.cart=[];state.cartSet=null;checkoutMethod='card';checkoutVoucher=false;state.mode='guest';state.tab='feed';close();
     await refreshServerData();
   });
   if(!demoSession.signedIn)return signIn();
   if(action==='like')return void withServer(async()=>{await api('like',{productId});await refreshServerData()});
+  if(action==='add'){
+    const menu=active().find(item=>item.id===productId),item=state.cart.find(entry=>entry.id===productId);
+    if(!menu||menu.stock<=(item?.qty||0))return toast('남은 재고를 확인해 주세요.');
+    if(item)item.qty++;else state.cart.push({id:productId,qty:1});
+    persist();render();cartPage();return;
+  }
   if(action==='order')return void withServer(async()=>{
     if(!state.cart.length)return;
-    const result=await api('order',{items:state.cart,setItems:state.cartSet||[],origin:center()});
-    state.cart=[];state.cartSet=null;close();state.mode='guest';state.tab='orders';
+    const result=await api('order',{items:state.cart,setItems:state.cartSet||[],origin:center(),paymentMethod:checkoutMethod,useVoucher:checkoutMethod==='onsite'&&checkoutVoucher});
+    state.cart=[];state.cartSet=null;checkoutMethod='card';checkoutVoucher=false;close();state.mode='guest';state.tab='orders';
     await refreshServerData();route(result.orderId);
   });
   if(action==='owner-status')return void withServer(async()=>{
