@@ -2,12 +2,18 @@ import { getChatGPTUser } from "@/app/chatgpt-auth";
 import { ApiError, closingMillis, database, discountPrice, distanceKm, ensureSeed, errorResponse, isOwner, json, now, productForClient, requireOwner, requireUser, shopForClient, syncUser, today } from "@/lib/marketplace";
 
 type Row = Record<string, any>;
-const ownerShop = "bake";
 const int = (value: unknown) => Number.isSafeInteger(Number(value)) ? Number(value) : NaN;
 const text = (value: unknown, max = 300) => String(value ?? "").trim().slice(0, max);
 const id = () => String(Date.now() * 1000 + Math.floor(Math.random() * 1000));
 
-async function orderRows(db: D1Database, userId: string, owner: boolean) {
+async function selectedOwnerShop(db: D1Database, value: unknown) {
+  const shopId=text(value,60);
+  const exists=shopId&&await db.prepare("SELECT id FROM shops WHERE id=?").bind(shopId).first();
+  if(!exists)throw new ApiError(400,"select_shop_first");
+  return shopId;
+}
+
+async function orderRows(db: D1Database, userId: string, owner: boolean, ownerShop?: string) {
   const rows = owner
     ? await db.prepare("SELECT o.*, p.status AS pickup_status,p.eta_at,p.completed_at FROM orders o JOIN order_pickups p ON p.order_id=o.id WHERE p.shop_id=? AND p.owner_hidden_at IS NULL ORDER BY o.created_at DESC LIMIT 100").bind(ownerShop).all<Row>()
     : await db.prepare("SELECT * FROM orders WHERE customer_user_id=? AND customer_hidden_at IS NULL ORDER BY created_at DESC LIMIT 100").bind(userId).all<Row>();
@@ -40,7 +46,7 @@ export async function GET(request: Request) {
       return json({ids:rows.results.map(r=>Number(r.product_id))});
     }
     if (view === "orders") return json({orders:await orderRows(db,signed.userId,false)});
-    if (view === "owner-orders") { requireOwner(user); return json({orders:await orderRows(db,signed.userId,true)}); }
+    if (view === "owner-orders") { requireOwner(user); return json({orders:await orderRows(db,signed.userId,true,await selectedOwnerShop(db,new URL(request.url).searchParams.get("shopId")))}); }
     if (view === "notifications") {
       const rows = await db.prepare("SELECT id,kind,title,body,order_id,read_at,created_at FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 50").bind(signed.userId).all<Row>();
       return json({notifications:rows.results});
@@ -110,12 +116,13 @@ export async function POST(request: Request) {
     }
     if (action === "hide-order") {
       const orderId=String(int(body.orderId));
-      if (body.side === "owner") { requireOwner(user); await db.prepare("UPDATE order_pickups SET owner_hidden_at=? WHERE order_id=? AND shop_id=?").bind(timestamp,orderId,ownerShop).run(); }
+      if (body.side === "owner") { requireOwner(user); const ownerShop=await selectedOwnerShop(db,body.shopId); await db.prepare("UPDATE order_pickups SET owner_hidden_at=? WHERE order_id=? AND shop_id=?").bind(timestamp,orderId,ownerShop).run(); }
       else await db.prepare("UPDATE orders SET customer_hidden_at=? WHERE id=? AND customer_user_id=?").bind(timestamp,orderId,user.userId).run();
       return json({ok:true});
     }
     if (action === "owner-status") {
       requireOwner(user);
+      const ownerShop=await selectedOwnerShop(db,body.shopId);
       const orderId=String(int(body.orderId)), next=text(body.status,20);
       const current=await db.prepare("SELECT status FROM order_pickups WHERE order_id=? AND shop_id=?").bind(orderId,ownerShop).first<Row>();
       if (!current) throw new ApiError(404,"order_not_found");
@@ -127,6 +134,7 @@ export async function POST(request: Request) {
     }
     if (action === "product-create" || action === "product-update") {
       requireOwner(user);
+      const ownerShop=await selectedOwnerShop(db,body.shopId);
       const name=text(body.name,40), description=text(body.description,300)||"마감 상품을 판매합니다", originalPrice=int(body.originalPrice), stock=int(body.stock), closing=text(body.closing,5);
       if (!name||!Number.isSafeInteger(originalPrice)||originalPrice<100||!Number.isSafeInteger(stock)||stock<0||stock>9999) throw new ApiError(400,"invalid_product");
       const closeAt=closingMillis(today(),closing);

@@ -1,12 +1,14 @@
 // Server data owns products, orders, likes and owner actions. Local state keeps only display preferences and the cart.
 let backendSession={signedIn:false,owner:false};
 let demoSession={signedIn:false,role:null};
+let ownerShopId=sessionStorage.getItem('owner-shop-id')||null;
 const signIn=()=>showLogin();
 const originalRender=render;
 render=function(){
   originalRender();
   const actions=document.querySelector('.header-actions'), switchButton=actions?.querySelector('.mode-switch');
   if(switchButton){switchButton.textContent=backendSession.owner?'점주 계정':'고객 계정';switchButton.disabled=true;}
+  if(backendSession.owner&&ownerShopId&&actions&&!actions.querySelector('.shop-change-button'))actions.insertAdjacentHTML('beforeend','<button class="shop-change-button" data-action="owner-change-shop" type="button">가게 변경</button>');
   if(actions&&!actions.querySelector('.logout-button'))actions.insertAdjacentHTML('beforeend','<button class="logout-button" data-action="demo-logout" type="button">로그아웃</button>');
 };
 function showLogin(){
@@ -19,14 +21,30 @@ function showLogin(){
   gate.hidden=false;document.body.classList.add('login-open');
 }
 function hideLogin(){const gate=document.querySelector('#login-gate');if(gate)gate.hidden=true;document.body.classList.remove('login-open');}
+function showShopPicker(){
+  let gate=document.querySelector('#shop-picker');
+  if(!gate){
+    gate=document.createElement('div');gate.id='shop-picker';
+    gate.innerHTML='<main class="shop-picker-card"><div class="login-logo"><span>ㅎ</span> 마감한끼</div><h1>내 가게를 선택해 주세요</h1><p>가게를 선택하면 해당 가게의 피드·주문·메뉴 관리를 볼 수 있어요.</p><label class="shop-picker-search">가게 검색<input id="owner-shop-search" type="search" placeholder="가게 이름 또는 지역 검색"></label><div id="owner-shop-list" class="owner-shop-list"></div><p class="shop-picker-note">시연용 가상 가게 목록입니다.</p><button class="shop-picker-logout" data-action="demo-logout" type="button">다른 계정으로 로그인</button></main>';
+    document.body.append(gate);
+  }
+  gate.hidden=false;document.body.classList.add('shop-picker-open');renderShopPickerList();
+}
+function hideShopPicker(){const gate=document.querySelector('#shop-picker');if(gate)gate.hidden=true;document.body.classList.remove('shop-picker-open');}
+function renderShopPickerList(){
+  const list=document.querySelector('#owner-shop-list');if(!list)return;
+  const query=(document.querySelector('#owner-shop-search')?.value||'').trim().toLocaleLowerCase();
+  const filtered=shops.filter(s=>(s.name+' '+s.area+' '+(s.category||'')).toLocaleLowerCase().includes(query));
+  list.innerHTML=filtered.map(s=>`<button class="owner-shop-choice" type="button" data-action="owner-select-shop" data-value="${esc(s.id)}"><img src="assets/${esc(s.image)}.jpg" alt=""><span><strong>${esc(s.name)}</strong><small>${esc(s.area)} · ${esc(s.category||'골목 가게')}</small></span><b>선택</b></button>`).join('')||'<p class="muted">검색 결과가 없어요.</p>';
+}
 const api=async(action,payload={})=>{
   const response=await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});
   const result=await response.json();
   if(!response.ok)throw Error(result.error||'request_failed');
   return result;
 };
-const apiGet=async view=>{
-  const response=await fetch('/api/data?view='+encodeURIComponent(view),{cache:'no-store'});
+const apiGet=async(view,shopId)=>{
+  const response=await fetch('/api/data?view='+encodeURIComponent(view)+(shopId?'&shopId='+encodeURIComponent(shopId):''),{cache:'no-store'});
   const result=await response.json();
   if(!response.ok)throw Error(result.error||'request_failed');
   return result;
@@ -38,27 +56,36 @@ async function refreshServerData(){
   state.cart=state.cart.filter(x=>state.menus.some(m=>m.id===x.id));
   demoSession=await (await fetch('/api/demo-auth',{cache:'no-store'})).json();
   backendSession=demoSession.signedIn?await apiGet('session'):{signedIn:false,owner:false};
+  if(!shops.some(s=>s.id===ownerShopId))ownerShopId=null;
+  if(demoSession.role==='owner'&&ownerShopId)OWNER_SHOP_ID=ownerShopId;
   if(demoSession.signedIn){
     const [likes,orders]=await Promise.all([apiGet('likes'),apiGet('orders')]);
     state.likes=likes.ids;state.orders=orders.orders;
-    state.ownerOrders=backendSession.owner?(await apiGet('owner-orders')).orders:[];
+    state.ownerOrders=backendSession.owner&&ownerShopId?(await apiGet('owner-orders',ownerShopId)).orders:[];
   }else{state.likes=[];state.orders=[];state.ownerOrders=[];}
   state.mode=demoSession.role==='owner'?'owner':'guest';
   if(state.mode==='guest'&&['register','ownerOrders','manage'].includes(state.tab))state.tab='feed';
-  if(state.mode==='owner'&&!['register','ownerOrders','manage'].includes(state.tab))state.tab='register';
+  if(state.mode==='owner'&&!['feed','register','ownerOrders','manage'].includes(state.tab))state.tab='feed';
   render();
   if(demoSession.signedIn)hideLogin();else showLogin();
+  if(demoSession.role==='owner'&&!ownerShopId)showShopPicker();else hideShopPicker();
 }
 const withServer=async work=>{try{await work()}catch(error){if(error.message==='sign_in_required')signIn();else toast(error.message==='stock_changed'?'재고가 변경됐어요. 다시 확인해 주세요.':'요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.');}};
 document.addEventListener('click',event=>{
   const button=event.target.closest('[data-action]');if(!button)return;
   const action=button.dataset.action, productId=Number(button.dataset.id), orderId=productId;
-  if(!['mode','demo-logout','like','order','owner-status','confirm-delete-order'].includes(action))return;
+  if(!['mode','demo-logout','owner-select-shop','owner-change-shop','like','order','owner-status','confirm-delete-order'].includes(action))return;
   event.preventDefault();event.stopImmediatePropagation();
   if(action==='mode')return;
+  if(action==='owner-select-shop')return void withServer(async()=>{
+    const choice=shops.find(s=>s.id===button.dataset.value);if(!choice)return;
+    ownerShopId=choice.id;OWNER_SHOP_ID=choice.id;sessionStorage.setItem('owner-shop-id',choice.id);storyFilter='';feedQuery='';state.tab='feed';
+    await refreshServerData();scrollTo(0,0);
+  });
+  if(action==='owner-change-shop'){ownerShopId=null;sessionStorage.removeItem('owner-shop-id');showShopPicker();return;}
   if(action==='demo-logout')return void withServer(async()=>{
     await fetch('/api/demo-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'logout'})});
-    state.likes=[];state.orders=[];state.ownerOrders=[];state.cart=[];state.cartSet=null;state.mode='guest';state.tab='feed';close();
+    ownerShopId=null;sessionStorage.removeItem('owner-shop-id');state.likes=[];state.orders=[];state.ownerOrders=[];state.cart=[];state.cartSet=null;state.mode='guest';state.tab='feed';close();
     await refreshServerData();
   });
   if(!demoSession.signedIn)return signIn();
@@ -71,11 +98,11 @@ document.addEventListener('click',event=>{
   });
   if(action==='owner-status')return void withServer(async()=>{
     if(!backendSession.owner)return;
-    await api('owner-status',{orderId,status:button.dataset.value});
+    await api('owner-status',{orderId,status:button.dataset.value,shopId:ownerShopId});
     await refreshServerData();toast('주문 상태를 변경했어요.');
   });
   if(action==='confirm-delete-order')return void withServer(async()=>{
-    await api('hide-order',{orderId,side:button.dataset.value==='owner'?'owner':'customer'});
+    await api('hide-order',{orderId,side:button.dataset.value==='owner'?'owner':'customer',shopId:ownerShopId});
     close();await refreshServerData();toast('내역을 삭제했어요.');
   });
 },true);
@@ -92,9 +119,9 @@ document.addEventListener('submit',event=>{
       const blob=await(await fetch(photo)).blob(), upload=new FormData();upload.append('file',blob,'product.jpg');
       const uploaded=await fetch('/api/uploads',{method:'POST',body:upload});
       const data=await uploaded.json();if(!uploaded.ok)throw Error(data.error||'upload_failed');
-      await api('product-create',{...payload,image:data.url,surplusReason:draft?.surplusReason||''});
+      await api('product-create',{...payload,image:data.url,surplusReason:draft?.surplusReason||'',shopId:ownerShopId});
       draft=null;photo=null;state.tab='manage';
-    }else await api('product-update',{...payload,productId:Number(form.dataset.id)});
+    }else await api('product-update',{...payload,productId:Number(form.dataset.id),shopId:ownerShopId});
     close();await refreshServerData();toast('메뉴 정보를 저장했어요.');
   });
 },true);
@@ -107,11 +134,12 @@ document.addEventListener('submit',event=>{
     try{
       const response=await fetch('/api/demo-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',role:fields.get('role'),username:fields.get('username'),password:fields.get('password')})});
       if(!response.ok){error.textContent='계정 유형, 아이디와 비밀번호를 확인해 주세요.';return;}
-      state.tab=fields.get('role')==='owner'?'register':'feed';
+      ownerShopId=null;sessionStorage.removeItem('owner-shop-id');state.tab='feed';
       await refreshServerData();scrollTo(0,0);
     }catch{error.textContent='로그인에 실패했습니다. 다시 시도해 주세요.';}
     finally{button.disabled=false;button.textContent='로그인';}
   })();
 });
+document.addEventListener('input',event=>{if(event.target.id==='owner-shop-search')renderShopPickerList()});
 showLogin();
 refreshServerData().catch(()=>toast('서버 데이터를 불러오지 못했어요. 새로고침해 주세요.'));
