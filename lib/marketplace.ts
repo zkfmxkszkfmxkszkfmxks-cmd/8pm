@@ -93,7 +93,7 @@ export function productForClient(row: Row) {
 }
 
 export function shopForClient(row: Row) {
-  return { id: row.id, name: row.name, category: row.category, area: row.area, address: row.address, lat: row.lat, lng: row.lng, image: row.image };
+  return { id: row.id, name: row.name, category: row.category, area: row.area, address: row.address, lat: row.lat, lng: row.lng, image: row.image, acceptsVoucher: Boolean(row.accepts_voucher) };
 }
 
 export function discountPrice(original: number, id: number) { return salePrice(original, id); }

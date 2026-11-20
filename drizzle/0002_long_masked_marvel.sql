@@ -1,0 +1,1 @@
+ALTER TABLE `shops` ADD `accepts_voucher` integer DEFAULT false NOT NULL;

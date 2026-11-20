@@ -3,6 +3,19 @@ let backendSession={signedIn:false,owner:false};
 let demoSession={signedIn:false,role:null};
 let ownerShopId=sessionStorage.getItem('owner-shop-id')||null;
 const signIn=()=>showLogin();
+const originalShopCard=shopCard;
+shopCard=function(group){
+  const own=state.mode==='owner'&&group.shop.id===OWNER_SHOP_ID;
+  const voucher=group.shop.acceptsVoucher;
+  const label=own?'<div class="owner-feed-label">내 가게</div>':'';
+  const voucherLabel=`<div class="voucher-feed-label ${voucher?'available':'unavailable'}">${voucher?'상품권 사용 가능':'상품권 사용 불가'}</div>`;
+  return originalShopCard(group).replace('<div class="post-top">',label+voucherLabel+'<div class="post-top">');
+};
+const originalManagePage=managePage;
+managePage=function(){
+  const selected=shop(OWNER_SHOP_ID),accepts=!!selected.acceptsVoucher;
+  return originalManagePage()+`<section class="panel voucher-settings"><div class="panel-title"><h2>가게 설정</h2></div><div class="voucher-settings-row"><div><strong>상품권 사용</strong><p>손님 피드에 사용 가능 여부가 표시됩니다.</p></div><button type="button" data-action="voucher-toggle" role="switch" aria-checked="${accepts}" aria-label="상품권 사용 ${accepts?'가능':'불가'}" class="voucher-switch ${accepts?'on':''}"><span></span></button></div><small class="voucher-settings-state">현재 ${accepts?'사용 가능':'사용 불가'}</small></section>`;
+};
 const originalRender=render;
 render=function(){
   originalRender();
@@ -74,7 +87,7 @@ const withServer=async work=>{try{await work()}catch(error){if(error.message==='
 document.addEventListener('click',event=>{
   const button=event.target.closest('[data-action]');if(!button)return;
   const action=button.dataset.action, productId=Number(button.dataset.id), orderId=productId;
-  if(!['mode','demo-logout','owner-select-shop','owner-change-shop','like','order','owner-status','confirm-delete-order'].includes(action))return;
+  if(!['mode','demo-logout','owner-select-shop','owner-change-shop','voucher-toggle','like','order','owner-status','confirm-delete-order'].includes(action))return;
   event.preventDefault();event.stopImmediatePropagation();
   if(action==='mode')return;
   if(action==='owner-select-shop')return void withServer(async()=>{
@@ -83,6 +96,12 @@ document.addEventListener('click',event=>{
     await refreshServerData();scrollTo(0,0);
   });
   if(action==='owner-change-shop'){ownerShopId=null;sessionStorage.removeItem('owner-shop-id');showShopPicker();return;}
+  if(action==='voucher-toggle')return void withServer(async()=>{
+    if(!backendSession.owner||!ownerShopId)return;
+    button.disabled=true;
+    await api('shop-voucher',{shopId:ownerShopId,acceptsVoucher:!shop(ownerShopId).acceptsVoucher});
+    await refreshServerData();toast('상품권 사용 설정을 저장했어요.');
+  });
   if(action==='demo-logout')return void withServer(async()=>{
     await fetch('/api/demo-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'logout'})});
     ownerShopId=null;sessionStorage.removeItem('owner-shop-id');state.likes=[];state.orders=[];state.ownerOrders=[];state.cart=[];state.cartSet=null;state.mode='guest';state.tab='feed';close();

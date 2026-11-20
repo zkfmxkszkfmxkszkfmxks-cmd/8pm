@@ -132,6 +132,13 @@ export async function POST(request: Request) {
       if(order) await db.prepare("INSERT INTO notifications (id,user_id,kind,title,body,order_id,created_at) VALUES (?,?,?,?,?,?,?)").bind(crypto.randomUUID(),order.customer_user_id,"order_status","주문 상태 변경",next==="ready"?"음식이 준비됐어요.":next==="completed"?"픽업이 완료됐어요.":"주문이 수락됐어요.",orderId,timestamp).run();
       return json({ok:true});
     }
+    if (action === "shop-voucher") {
+      requireOwner(user);
+      const ownerShop=await selectedOwnerShop(db,body.shopId);
+      if(typeof body.acceptsVoucher!=="boolean")throw new ApiError(400,"invalid_voucher_setting");
+      await db.prepare("UPDATE shops SET accepts_voucher=? WHERE id=?").bind(body.acceptsVoucher?1:0,ownerShop).run();
+      return json({ok:true,acceptsVoucher:body.acceptsVoucher});
+    }
     if (action === "product-create" || action === "product-update") {
       requireOwner(user);
       const ownerShop=await selectedOwnerShop(db,body.shopId);

@@ -19,6 +19,7 @@ export const shops = sqliteTable("shops", {
   lat: real("lat").notNull(),
   lng: real("lng").notNull(),
   image: text("image").notNull(),
+  acceptsVoucher: integer("accepts_voucher", { mode: "boolean" }).notNull().default(false),
   sample: integer("sample", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at").notNull(),
 }, (table) => [index("shops_owner_idx").on(table.ownerUserId)]);

@@ -15,6 +15,13 @@
       "when": 1795164725700,
       "tag": "0001_watery_wrecker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1795181974626,
+      "tag": "0002_long_masked_marvel",
+      "breakpoints": true
     }
   ]
 }
