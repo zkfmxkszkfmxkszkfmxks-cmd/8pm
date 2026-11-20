@@ -54,6 +54,7 @@ document.addEventListener('change',event=>{
 const originalRender=render;
 render=function(){
   originalRender();
+  if(state.tab==='register')updateDictationUi();
   const actions=document.querySelector('.header-actions'), switchButton=actions?.querySelector('.mode-switch');
   if(switchButton){switchButton.textContent=backendSession.owner?'점주 계정':'고객 계정';switchButton.disabled=true;}
   if(backendSession.owner&&ownerShopId&&actions&&!actions.querySelector('.shop-change-button'))actions.insertAdjacentHTML('beforeend','<button class="shop-change-button" data-action="owner-change-shop" type="button">가게 변경</button>');
