@@ -1,6 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const pipeline = require('../dist/recommendation-pipeline.js');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const scriptSandbox = {};
+vm.runInNewContext(fs.readFileSync(require.resolve('../public/recommendation-pipeline.js'), 'utf8'), scriptSandbox);
+const pipeline = scriptSandbox.MAGAM_PIPELINE;
 
 const shops = [
   { id: 'near', km: 0.4, category: '한식' },
@@ -27,7 +31,7 @@ test('3km 밖·품절·제외 메뉴를 걸러 내고 예산과 재고를 지킨
   const result = pipeline.run({ ...context, text: '2명이 2만원으로 식사하고 커피는 빼줘' });
   assert.equal(result.strategy, 'rules-demo');
   assert.equal(result.stats.inRange, 3);
-  assert.deepEqual(result.items.map(item => item.id), [1, 3]);
+  assert.deepEqual(Array.from(result.items, item => item.id), [1, 3]);
   assert(result.total <= result.budget);
   assert.equal(result.discount, Math.round(result.total * 0.1));
   for (const item of result.items) assert(item.qty <= menus.find(menu => menu.id === item.id).stock);
