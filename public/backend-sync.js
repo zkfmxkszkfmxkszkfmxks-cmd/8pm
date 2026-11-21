@@ -9,7 +9,7 @@ shopCard=function(group){
   const voucher=group.shop.acceptsVoucher;
   const label=own?'<div class="owner-feed-label">내 가게</div>':'';
   const voucherLabel=`<span class="stock voucher-feed-label ${voucher?'available':'unavailable'}">${voucher?'서울사랑상품권 사용 가능':'서울사랑상품권 사용 불가'}</span>`;
-  return originalShopCard(group).replace('<div class="post-top">',label+'<div class="post-top">').replace(/(<span class="stock">[^<]*<\/span>)/,`<div class="post-badges">$1${voucherLabel}</div>`);
+  return originalShopCard(group).replace('<div class="post-top">',label+'<div class="post-top">').replace('<span class="post-badges-slot"></span>',`<div class="post-badges">${voucherLabel}</div>`);
 };
 const originalManagePage=managePage;
 managePage=function(){
