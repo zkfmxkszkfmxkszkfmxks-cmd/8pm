@@ -26,13 +26,18 @@ erDiagram
       text id PK
       text customer_user_id FK
       text product_ids "JSON of registered IDs"
+      text items_json "product ID and quantity"
+      text voucher_code
       text reason
       integer expires_at
     }
     ORDERS {
       text id PK
       text customer_user_id FK
+      integer requested_at
       integer response_deadline_at
+      integer confirmed_at
+      text status "waiting | confirmed | sold_out | timeout | completed | no_show"
       text recommendation_id FK
       integer total
       text payment_method "onsite"
@@ -49,6 +54,8 @@ erDiagram
       text order_id FK
       text shop_id FK
       text status "waiting | accepted | completed | sold_out | timeout | no_show | cancelled"
+      text response_status "waiting | accepted | sold_out | timeout | cancelled"
+      text receipt_status "pending | completed | no_show"
       integer responded_at
       integer received_at
       integer pickup_deadline_at

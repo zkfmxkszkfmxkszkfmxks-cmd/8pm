@@ -59,7 +59,10 @@ export const orders = sqliteTable("orders", {
   originLat: real("origin_lat").notNull(),
   originLng: real("origin_lng").notNull(),
   customerHiddenAt: integer("customer_hidden_at"),
+  requestedAt: integer("requested_at"),
   responseDeadlineAt: integer("response_deadline_at"),
+  confirmedAt: integer("confirmed_at"),
+  status: text("status", { enum: ["waiting", "confirmed", "sold_out", "timeout", "completed", "no_show"] }).notNull().default("waiting"),
   recommendationId: text("recommendation_id"),
   createdAt: integer("created_at").notNull(),
 }, (table) => [index("orders_customer_created_idx").on(table.customerUserId, table.createdAt)]);
@@ -86,6 +89,8 @@ export const orderPickups = sqliteTable("order_pickups", {
   ownerHiddenAt: integer("owner_hidden_at"),
   completedAt: integer("completed_at"),
   respondedAt: integer("responded_at"),
+  responseStatus: text("response_status", { enum: ["waiting", "accepted", "sold_out", "timeout", "cancelled"] }).notNull().default("waiting"),
+  receiptStatus: text("receipt_status", { enum: ["pending", "completed", "no_show"] }).notNull().default("pending"),
   receivedAt: integer("received_at"),
   createdAt: integer("created_at").notNull(),
 }, (table) => [primaryKey({ columns: [table.orderId, table.shopId] }), index("order_pickups_shop_status_idx").on(table.shopId, table.status)]);
@@ -94,6 +99,8 @@ export const recommendations = sqliteTable("recommendations", {
   id: text("id").primaryKey(),
   customerUserId: text("customer_user_id").notNull().references(() => users.id),
   productIds: text("product_ids").notNull(),
+  itemsJson: text("items_json").notNull().default("[]"),
+  voucherCode: text("voucher_code"),
   reason: text("reason").notNull(),
   createdAt: integer("created_at").notNull(),
   expiresAt: integer("expires_at").notNull(),

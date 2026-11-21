@@ -118,6 +118,7 @@ async function refreshServerData(){
   render();
   if(demoSession.signedIn)hideLogin();else showLogin();
   if(demoSession.role==='owner'&&!ownerShopId)showShopPicker();else hideShopPicker();
+  document.dispatchEvent(new Event('marketplace-ready'));
 }
 const withServer=async work=>{try{await work()}catch(error){if(error.message==='sign_in_required')signIn();else toast(error.message==='stock_changed'?'재고가 변경됐어요. 다시 확인해 주세요.':'요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.');}};
 document.addEventListener('click',event=>{
