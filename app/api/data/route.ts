@@ -47,6 +47,10 @@ export async function GET(request: Request) {
       return json({shops:shops.results.map(shopForClient),menus:products.results.map(productForClient),date:today()});
     }
     const signed = requireUser(user); await syncUser(db,signed);
+    if (view === "profile") {
+      const profile = await db.prepare("SELECT notes,updated_at FROM customer_profiles WHERE user_id=?").bind(signed.userId).first<Row>();
+      return json({ notes: profile?.notes || "", updatedAt: profile?.updated_at || null });
+    }
     if (view === "likes") {
       const rows = await db.prepare("SELECT product_id FROM likes WHERE user_id=?").bind(signed.userId).all<Row>();
       return json({ids:rows.results.map(r=>Number(r.product_id))});
@@ -71,6 +75,15 @@ export async function POST(request: Request) {
     const user=requireUser(await getChatGPTUser()); await syncUser(db,user);
     const body=await request.json() as Row;
     const action=text(body.action,40), timestamp=now();
+    if (action === "profile-save") {
+      if (isOwner(user) || typeof body.notes !== "string" || body.notes.length > 500) throw new ApiError(400,"invalid_profile");
+      const notes=body.notes.trim();
+      await db.batch([
+        db.prepare("INSERT INTO customer_profiles (user_id,notes,updated_at) VALUES (?,?,?) ON CONFLICT(user_id) DO UPDATE SET notes=excluded.notes,updated_at=excluded.updated_at").bind(user.userId,notes,timestamp),
+        db.prepare("DELETE FROM recommendations WHERE customer_user_id=?").bind(user.userId),
+      ]);
+      return json({ notes, updatedAt:timestamp });
+    }
     if (action === "like") {
       const productId=String(int(body.productId));
       if (!Number.isFinite(Number(productId))) throw new ApiError(400,"invalid_product");

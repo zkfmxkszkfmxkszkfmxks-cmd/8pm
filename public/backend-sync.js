@@ -108,10 +108,11 @@ async function refreshServerData(){
   if(!shops.some(s=>s.id===ownerShopId))ownerShopId=null;
   if(demoSession.role==='owner'&&ownerShopId)OWNER_SHOP_ID=ownerShopId;
   if(demoSession.signedIn){
-    const [likes,orders]=await Promise.all([apiGet('likes'),apiGet('orders')]);
+    const [likes,orders,profile]=await Promise.all([apiGet('likes'),apiGet('orders'),demoSession.role==='customer'?apiGet('profile'):Promise.resolve({notes:''})]);
     state.likes=likes.ids;state.orders=orders.orders;
+    customerProfileNotes=profile.notes||'';
     state.ownerOrders=backendSession.owner&&ownerShopId?(await apiGet('owner-orders',ownerShopId)).orders:[];
-  }else{state.likes=[];state.orders=[];state.ownerOrders=[];}
+  }else{state.likes=[];state.orders=[];state.ownerOrders=[];customerProfileNotes='';}
   state.mode=demoSession.role==='owner'?'owner':'guest';
   if(state.mode==='guest'&&['register','ownerOrders','manage'].includes(state.tab))state.tab='feed';
   if(state.mode==='owner'&&!['feed','register','ownerOrders','manage'].includes(state.tab))state.tab='feed';
@@ -141,7 +142,7 @@ document.addEventListener('click',event=>{
   });
   if(action==='demo-logout')return void withServer(async()=>{
     await fetch('/api/demo-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'logout'})});
-    ownerShopId=null;sessionStorage.removeItem('owner-shop-id');state.likes=[];state.orders=[];state.ownerOrders=[];state.cart=[];state.cartSet=null;checkoutMethod='card';checkoutVoucher=false;state.mode='guest';state.tab='feed';close();
+    ownerShopId=null;sessionStorage.removeItem('owner-shop-id');state.likes=[];state.orders=[];state.ownerOrders=[];customerProfileNotes='';featuredSets=[];featuredAttemptKey='';featuredLastGeneratedAt=0;state.cart=[];state.cartSet=null;checkoutMethod='card';checkoutVoucher=false;state.mode='guest';state.tab='feed';close();
     await refreshServerData();
   });
   if(!demoSession.signedIn)return signIn();
@@ -198,6 +199,19 @@ document.addEventListener('submit',event=>{
     close();await refreshServerData();toast('메뉴 정보를 저장했어요.');
   });
 },true);
+document.addEventListener('submit',event=>{
+  if(event.target.id!=='customer-profile-form')return;
+  event.preventDefault();event.stopImmediatePropagation();
+  if(!demoSession.signedIn||demoSession.role!=='customer')return signIn();
+  const form=event.target,button=form.querySelector('button[type="submit"]'),notes=String(new FormData(form).get('notes')||'');
+  if(button){button.disabled=true;button.textContent='저장 중...';}
+  void withServer(async()=>{
+    const result=await api('profile-save',{notes});
+    customerProfileNotes=result.notes;
+    featuredSets=[];featuredAttemptKey='';featuredLastGeneratedAt=0;
+    await refreshServerData();toast('특이사항을 저장했어요. 다음 추천부터 반영됩니다.');
+  }).finally(()=>{if(button.isConnected){button.disabled=false;button.textContent='특이사항 저장';}});
+},true);
 document.addEventListener('click',event=>{
   const button=event.target.closest('[data-action="demo-experience"]');if(!button)return;
   event.preventDefault();
@@ -208,7 +222,7 @@ document.addEventListener('click',event=>{
     try{
       const response=await fetch('/api/demo-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'experience',role})});
       if(!response.ok){error.textContent='체험을 시작하지 못했어요. 다시 시도해 주세요.';return;}
-      ownerShopId=null;sessionStorage.removeItem('owner-shop-id');state.tab='feed';
+      ownerShopId=null;sessionStorage.removeItem('owner-shop-id');featuredSets=[];featuredAttemptKey='';featuredLastGeneratedAt=0;state.tab='feed';
       await refreshServerData();scrollTo(0,0);
     }catch{error.textContent='체험을 시작하지 못했어요. 다시 시도해 주세요.';}
     finally{document.querySelectorAll('.experience-choice').forEach(choice=>choice.disabled=false);}

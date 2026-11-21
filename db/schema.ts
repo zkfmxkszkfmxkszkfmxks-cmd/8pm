@@ -9,6 +9,12 @@ export const users = sqliteTable("users", {
   updatedAt: integer("updated_at").notNull(),
 });
 
+export const customerProfiles = sqliteTable("customer_profiles", {
+  userId: text("user_id").primaryKey().references(() => users.id),
+  notes: text("notes").notNull().default(""),
+  updatedAt: integer("updated_at").notNull(),
+});
+
 export const shops = sqliteTable("shops", {
   id: text("id").primaryKey(),
   ownerUserId: text("owner_user_id").references(() => users.id),

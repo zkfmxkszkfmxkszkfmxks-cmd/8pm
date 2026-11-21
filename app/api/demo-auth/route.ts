@@ -1,4 +1,4 @@
-import { getDemoUser, makeDemoCookie, clearDemoCookie } from "@/lib/demo-auth";
+import { getDemoUser, makeDemoCookies, clearDemoCookie } from "@/lib/demo-auth";
 
 export async function GET() {
   const user = await getDemoUser();
@@ -15,6 +15,8 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid_role" }, { status: 400, headers: { "Cache-Control": "no-store" } });
   }
   try {
-    return Response.json({ ok: true, role: body.role }, { headers: { "Set-Cookie": await makeDemoCookie(body.role), "Cache-Control": "no-store" } });
+    const response = Response.json({ ok: true, role: body.role }, { headers: { "Cache-Control": "no-store" } });
+    for (const cookie of await makeDemoCookies(body.role)) response.headers.append("Set-Cookie", cookie);
+    return response;
   } catch { return Response.json({ error: "demo_auth_unavailable" }, { status: 503 }); }
 }

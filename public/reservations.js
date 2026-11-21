@@ -39,7 +39,7 @@ feedPage=function(){
 const previousStories=stories;
 stories=function(){return previousStories().replaceAll('최근 재고 등록 매장','최근 메뉴 등록 매장');};
 
-aiOpen=function(){overlay('골목세트',`<p class="muted">원하는 식사와 취향을 적으면 서로 다른 두 가게의 메뉴를 조합해 드려요.</p><textarea id="ai-prompt" rows="3" placeholder="예: 점심으로 샌드위치와 함께 먹을 음료 추천해줘">${esc(aiText)}</textarea><label class="voucher-select-label">상품권 조건<select id="set-voucher-code"><option value="">조건 없음</option><option value="seongdong">성동사랑상품권 · 두 가게 모두 사용 가능</option></select></label><button class="primary" data-action="ai-run">메뉴 조합 추천받기</button><p class="demo-note">AI는 등록된 상품만 고르고, 예약 가능 시간과 가게 간 이동은 서버에서 확인합니다.</p>`)};
+aiOpen=function(){overlay('골목세트',`<p class="muted">원하는 식사와 취향을 적으면 서로 다른 두 가게의 메뉴를 조합해 드려요.</p><p class="set-profile-note">${customerProfileNotes?`내 정보의 특이사항 반영 · ${esc(customerProfileNotes)}`:'내 정보에서 특이사항을 저장하면 추천에 자동 반영돼요.'}</p><textarea id="ai-prompt" rows="3" placeholder="예: 점심으로 샌드위치와 함께 먹을 음료 추천해줘">${esc(aiText)}</textarea><label class="voucher-select-label">상품권 조건<select id="set-voucher-code"><option value="">조건 없음</option><option value="seongdong">성동사랑상품권 · 두 가게 모두 사용 가능</option></select></label><button class="primary" data-action="ai-run">메뉴 조합 추천받기</button><p class="demo-note">AI는 등록된 상품만 고르고, 예약 가능 시간과 가게 간 이동은 서버에서 확인합니다.</p>`)};
 
 aiRun=async function(){
   aiText=$('#ai-prompt')?.value.trim()||'';if(!aiText)return toast('원하는 메뉴를 설명해 주세요.');

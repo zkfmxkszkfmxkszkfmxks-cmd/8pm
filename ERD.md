@@ -4,6 +4,7 @@
 erDiagram
     USERS ||--o{ ORDERS : requests
     USERS ||--o{ RECOMMENDATIONS : receives
+    USERS ||--o| CUSTOMER_PROFILES : saves
     SHOPS ||--o{ PRODUCTS : lists
     ORDERS ||--|{ ORDER_ITEMS : contains
     PRODUCTS ||--o{ ORDER_ITEMS : requested_as
@@ -22,6 +23,11 @@ erDiagram
       integer price
       integer closing_at
       text status "active | sold_out | hidden"
+    }
+    CUSTOMER_PROFILES {
+      text user_id PK, FK
+      text notes "customer recommendation preferences"
+      integer updated_at
     }
     RECOMMENDATIONS {
       text id PK

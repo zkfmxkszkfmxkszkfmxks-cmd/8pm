@@ -18,6 +18,17 @@ function validOrigin(origin: Origin) {
 }
 const voucherEligible = (product: Row) => Boolean(product.accepts_voucher) && product.area === "성수동";
 
+function conflictsWithRequest(product: Row, request: string) {
+  const label = `${product.name} ${product.description || ""}`;
+  const clauses = request.split(/[\n,.!?。]/).map(part => part.trim()).filter(Boolean);
+  const excludesFlour = clauses.some(part => /밀가루|글루텐/.test(part) && /제외|없이|빼|피하|피해|피하고|안\s*먹|못\s*먹|알레르기/.test(part));
+  if (excludesFlour && /빵|샌드위치|크루아상|스콘|휘낭시에|치아바타|바게트|파스타|면|우동|짬뽕|짜장|소바|만두|라면|국수|케이크|쿠키|도넛|피자/.test(label)) return true;
+  const excludesCoffee = clauses.some(part => /커피|카페인/.test(part) && /제외|없이|빼|피하|피해|피하고|안\s*먹|못\s*먹/.test(part));
+  if (excludesCoffee && /커피|라테|콜드브루|에스프레소|아메리카노/.test(label)) return true;
+  const wantsWarm = clauses.some(part => /따뜻|뜨끈|뜨거운/.test(part) && !/제외|없이|빼|싫|피하|피해|피하고/.test(part));
+  return wantsWarm && /아이스|얼음|시원|냉소바|콜드브루|샐러드|주스|병입/.test(label);
+}
+
 function fallbackProposals(candidates: Row[], prompt: string) {
   const coffeeExcluded = /커피.{0,6}(빼|제외|없이)|카페인.{0,6}(빼|제외|없이)/.test(prompt);
   const kind = (product: Row) => /커피|라테|콜드브루|주스|음료/.test(product.name) ? "drink"
@@ -60,6 +71,8 @@ export async function GET(request: Request) {
     const voucherCode = url.searchParams.get("voucherCode") || null;
     if (!validOrigin(origin) || (voucherCode && voucherCode !== "seongdong")) throw new ApiError(400, "invalid_input");
     const db = database(); await ensureSeed(db); await syncUser(db, user);
+    const profile = await db.prepare("SELECT notes FROM customer_profiles WHERE user_id=?").bind(user.userId).first<{ notes: string }>();
+    const notes = String(profile?.notes || "").trim();
     const timestamp = now();
     const saved = await db.prepare("SELECT * FROM recommendations WHERE customer_user_id=? AND expires_at>? ORDER BY created_at DESC LIMIT 20")
       .bind(user.userId, timestamp).all<Row>();
@@ -75,7 +88,7 @@ export async function GET(request: Request) {
           .bind(id).first<Row>();
         if (product) products.push(product);
       }
-      const set = presentSet(recommendation.id, recommendation.reason, products, origin, timestamp, recommendation.voucher_code);
+      const set = products.some(p => conflictsWithRequest(p, notes)) ? null : presentSet(recommendation.id, recommendation.reason, products, origin, timestamp, recommendation.voucher_code);
       if (set) sets.push(set);
       if (sets.length >= 3) break;
     }
@@ -92,24 +105,27 @@ export async function POST(request: Request) {
     const voucherCode = body.voucherCode || (body.useVoucher ? "seongdong" : null);
     if (!prompt || !validOrigin(origin) || (voucherCode && voucherCode !== "seongdong")) throw new ApiError(400, "invalid_input");
     const db = database(); await ensureSeed(db); await syncUser(db, user);
+    const profile = await db.prepare("SELECT notes FROM customer_profiles WHERE user_id=?").bind(user.userId).first<{ notes: string }>();
+    const notes = String(profile?.notes || "").trim();
+    const preferences = [notes, prompt].filter(Boolean).join("\n");
     const rows = await db.prepare("SELECT p.*,s.name AS shop_name,s.category,s.area,s.lat,s.lng,s.accepts_voucher FROM products p JOIN shops s ON s.id=p.shop_id WHERE p.status='active' AND p.listing_date=? ORDER BY p.created_at DESC LIMIT 150")
       .bind(today()).all<Row>();
     const timestamp = now();
-    const candidates = rows.results.filter(p => availableProduct(p, timestamp) && distanceKm(origin, { lat: Number(p.lat), lng: Number(p.lng) }) <= 3 && (!voucherCode || voucherEligible(p))).slice(0, 60);
+    const candidates = rows.results.filter(p => availableProduct(p, timestamp) && distanceKm(origin, { lat: Number(p.lat), lng: Number(p.lng) }) <= 3 && (!voucherCode || voucherEligible(p)) && !conflictsWithRequest(p, preferences)).slice(0, 60);
     if (new Set(candidates.map(p => p.shop_id)).size < 2) return json({ sets: [], message: "eligible_products_missing" });
     const catalog = candidates.map(p => ({ id: String(p.id), name: p.name, category: p.category || "음식", description: p.description, shop: p.shop_name }));
     let parsed: { budget: number | null; sets: Array<{ productIds: string[]; reason: string }> } = { budget: null, sets: [] };
     try {
       parsed = await geminiJson<typeof parsed>(
-        "고객 요청에 맞춰 함께 먹기 좋은 두 상품 조합을 최대 3개 제안하세요. 제공된 상품 ID만 사용하고 반드시 서로 다른 가게의 상품 두 개를 고르세요. 맛의 조화와 고객 조건을 근거로 각 조합의 이유를 한국어 한 문장으로 쓰세요. 상품이나 가게를 만들어내지 마세요. budget은 고객이 명시한 총 예산(원)만 숫자로, 없으면 null로 반환하세요.",
-        { request: prompt, catalog }, schema,
+        "고객의 저장된 특이사항과 이번 요청을 모두 반영해 함께 먹기 좋은 두 상품 조합을 최대 3개 제안하세요. 저장된 특이사항은 모든 추천에 적용하세요. 제공된 상품 ID만 사용하고 반드시 서로 다른 가게의 상품 두 개를 고르세요. 맛의 조화와 고객 조건을 근거로 각 조합의 이유를 한국어 한 문장으로 쓰세요. 상품이나 가게를 만들어내지 마세요. 원재료가 확인되지 않은 메뉴를 알레르기나 특정 식재료에 안전하다고 단정하지 마세요. budget은 이번 요청에 명시된 총 예산(원)만 숫자로, 없으면 null로 반환하세요.",
+        { profileNotes: notes, request: prompt, catalog }, schema,
       );
     } catch (error) {
       console.error("Using catalog-based set recommendation", { cause: error instanceof Error ? error.message : "unknown" });
     }
     const allowed = new Map(candidates.map(p => [String(p.id), p]));
     const seen = new Set<string>(), sets = [];
-    const proposals = (parsed.sets || []).concat(fallbackProposals(candidates, prompt).map(pair => ({ productIds: pair.products.map(p => String(p.id)), reason: pair.reason })));
+    const proposals = (parsed.sets || []).concat(fallbackProposals(candidates, preferences).map(pair => ({ productIds: pair.products.map(p => String(p.id)), reason: pair.reason })));
     for (const proposal of proposals) {
       if (!Array.isArray(proposal.productIds) || proposal.productIds.length !== 2) continue;
       const ids = proposal.productIds.map(String), key = [...ids].sort().join(":");

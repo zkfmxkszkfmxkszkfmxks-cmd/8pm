@@ -69,3 +69,17 @@
 .sheet [data-action="replacement-apply"],.sheet [data-action="replacement-back"]{margin-top:9px}
 @media(max-width:600px){.reservation-actions{flex-direction:column;align-items:stretch}.reservation-actions .primary,.reservation-actions .outline-button{width:100%;margin-top:8px}}
 @media(max-width:420px){.featured-set{padding:15px}.featured-set-head h2{font-size:1rem}.featured-set-head>strong{font-size:1rem}.featured-set-product img{height:82px}.featured-set-product strong{font-size:.8rem}}
+.main.profile{max-width:760px}
+.customer-profile-card,.customer-profile-notice{border-color:#cce9e4;border-radius:22px;box-shadow:0 10px 25px #0f605412}
+.customer-profile-card{background:linear-gradient(150deg,#effbf8,#fff 60%)}
+.customer-profile-card .panel-title{margin-bottom:5px}
+.customer-profile-card .form-label{font-size:.9rem;color:#244d49;line-height:1.45}
+#customer-profile-notes{min-height:145px;margin-top:12px;border:1px solid #bfded8;border-radius:14px;font-size:1rem;line-height:1.55}
+#customer-profile-notes:focus{outline:2px solid #28b9ae;outline-offset:2px}
+.profile-help,.customer-profile-notice p{font-size:.86rem;line-height:1.6;color:#587470}
+.profile-help{margin:9px 0 0}
+.customer-profile-card .primary{background:#2abbb4;color:#073c39;box-shadow:none}
+.customer-profile-card .primary:disabled{opacity:.6}
+.customer-profile-notice h2{color:#174a45}
+.customer-profile-notice .outline-button{margin-top:7px;border-color:#9bd6cd;color:#137c73}
+.set-profile-note{padding:10px 12px;border-radius:11px;background:#eaf8f5;color:#166f68;font-size:.82rem;line-height:1.45;overflow-wrap:anywhere}
