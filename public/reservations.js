@@ -39,10 +39,36 @@ function productDetail(id){
 
 shopInfo=function(id){
   const store=shop(id);selectedShop=id;
-  overlay(esc(store.name),`<img class="sheet-cover" src="assets/${esc(store.image)}.jpg" alt=""><div class="info-line">⌖ ${esc(store.address)} · ${esc(store.category||'골목 가게')} · ${distance(center(),store).toFixed(1)}km</div><h3>오늘의 메뉴</h3>${active().filter(menu=>menu.shop===id).map(menu=>`<div class="mini-item"><span>${esc(menu.name)}<small>${productAvailability(menu)} · 픽업 마감 ${esc(menu.closing)}</small></span><strong>${won(menu.price)}</strong><button class="outline-button" data-action="product-detail" data-id="${menu.id}">상세</button></div>`).join('')||'<p class="muted">오늘 등록된 메뉴가 없습니다.</p>'}<button class="primary" data-action="close">닫기</button>`);
+  overlay(esc(store.name),`<div class="shop-detail-cover"><img src="assets/${esc(store.image)}.jpg" alt="${esc(store.name)} 가게 사진"><span>${esc(store.area)} · ${esc(store.category||'골목 가게')}</span></div><div class="shop-detail-heading"><strong>${esc(store.name)}</strong><small>${esc(store.address)}</small></div><nav class="shop-detail-tabs" aria-label="가게 상세 정보"><button data-action="shop-detail-tab" data-value="menu" class="active" aria-current="page">메뉴</button><button data-action="shop-detail-tab" data-value="location">위치</button><button data-action="shop-detail-tab" data-value="info">가게정보</button></nav><div id="shop-detail-body"></div>`);
+  document.querySelector('.overlay-bg')?.classList.add('shop-detail-overlay');
+  document.querySelector('.sheet')?.classList.add('shop-detail-sheet');
+  renderShopDetailTab('menu');
 };
+function renderShopDetailTab(tab){
+  const store=shop(selectedShop),menus=active().filter(menu=>menu.shop===selectedShop),body=document.querySelector('#shop-detail-body');
+  if(!body)return;
+  document.querySelectorAll('.shop-detail-tabs button').forEach(button=>{const active=button.dataset.value===tab;button.classList.toggle('active',active);button.setAttribute('aria-current',active?'page':'false');});
+  if(tab==='menu')body.innerHTML=`<div class="shop-detail-summary"><span>오늘 등록한 메뉴 <strong>${menus.length}개</strong></span><span>${store.acceptsVoucher?'서울사랑상품권 사용 가능':'서울사랑상품권 사용 불가'}</span></div>${menus.map(menu=>`<article class="shop-detail-menu"><img src="${image(menu)}" alt="${esc(menu.name)} 사진"><div><small>${esc(store.category||'오늘의 메뉴')}</small><h3>${esc(menu.name)}</h3><p>${esc(menu.desc)}</p><span class="shop-detail-price"><strong>${won(menu.price)}</strong><del>${won(menu.originalPrice||menu.price)}</del></span><small>${productAvailability(menu)} · 픽업 마감 ${esc(menu.closing)}</small><button class="shop-detail-reserve" data-action="reserve-product" data-id="${menu.id}" ${menu.reservable?'':'disabled'}>${menu.reservable?'예약하기':'예약 불가'}</button></div></article>`).join('')||'<p class="shop-detail-empty">오늘 등록된 메뉴가 없습니다.</p>'}`;
+  else if(tab==='location'){
+    body.innerHTML=`<div id="shop-detail-map" role="img" aria-label="${esc(store.name)} 위치 지도"><span>지도를 불러오는 중입니다.</span></div><section class="shop-detail-info-card"><h3>찾아오는 길</h3><p>${esc(store.address)}</p><small>${state.locationStatus==='live'?'현재 위치':'성수역'}에서 약 ${distance(feedLocation(),store).toFixed(1)}km</small></section>`;
+    const holder=document.querySelector('#shop-detail-map');
+    if(window.kakao?.maps)kakao.maps.load(()=>{if(holder!==document.querySelector('#shop-detail-map'))return;try{const point=new kakao.maps.LatLng(store.lat,store.lng),map=new kakao.maps.Map(holder,{center:point,level:4});new kakao.maps.Marker({position:point,map,title:store.name});setTimeout(()=>map.relayout(),100)}catch{holder.textContent='지도에 위치를 표시할 수 없습니다. 아래 주소를 확인해 주세요.'}});
+    else holder.textContent='지도에 위치를 표시할 수 없습니다. 아래 주소를 확인해 주세요.';
+  }else body.innerHTML=`<section class="shop-detail-info-card"><h3>가게 소개</h3><p>${esc(store.name)} · ${esc(store.area)}의 ${esc(store.category||'골목 가게')}</p><dl><div><dt>주소</dt><dd>${esc(store.address)}</dd></div><div><dt>오늘의 메뉴</dt><dd>${menus.length}개</dd></div><div><dt>서울사랑상품권</dt><dd>${store.acceptsVoucher?'사용 가능':'사용 불가'}</dd></div></dl><p>메뉴별 픽업 마감과 현재 판매 가격은 메뉴 탭에서 확인해 주세요.</p></section>`;
+}
+document.addEventListener('click',event=>{
+  const button=event.target.closest('[data-action="shop-detail-tab"]');
+  if(!button)return;
+  event.preventDefault();event.stopImmediatePropagation();renderShopDetailTab(button.dataset.value);
+},true);
 
 const previousFeedPage=feedPage;
+const previousShopCard=shopCard;
+shopCard=function(group){
+  if(state.mode==='owner')return previousShopCard(group);
+  const store=group.shop,menus=group.menus.slice(0,3);
+  return `<article class="post shop-post compact-shop-card"><button class="compact-shop-head" data-action="shop" data-value="${esc(store.id)}" aria-label="${esc(store.name)} 가게 보기"><img src="assets/${esc(store.image)}.jpg" alt=""><span><strong>${esc(store.name)}</strong><small>${esc(store.area)} · ${esc(store.category||'골목 가게')}</small><em>${state.locationStatus==='live'?'내 위치':'성수역'}에서 ${distance(feedLocation(),store).toFixed(1)}km · 픽업 가능</em></span><b class="compact-voucher">${store.acceptsVoucher?'서울사랑상품권 사용 가능':'서울사랑상품권 사용 불가'}</b></button><div class="compact-menu-grid">${menus.map(menu=>`<button class="compact-menu" data-action="shop" data-value="${esc(store.id)}" aria-label="${esc(store.name)}에서 ${esc(menu.name)} 보기"><img src="${image(menu)}" alt=""><strong>${esc(menu.name)}</strong><span><b>${won(menu.price)}</b> <del>${won(menu.originalPrice||menu.price)}</del></span></button>`).join('')}</div><button class="compact-shop-more" data-action="shop" data-value="${esc(store.id)}">${esc(store.name)} 메뉴 전체 보기 <span aria-hidden="true">›</span></button></article>`;
+};
 feedPage=function(){
   storyFilter='';
   if(state.mode==='owner'){
@@ -50,9 +76,26 @@ feedPage=function(){
     const preview=`<article class="post shop-post owner-preview-card"><div class="post-top"><img src="assets/${esc(store.image)}.jpg" alt=""><span><strong>${esc(store.name)}</strong><small>${esc(store.area)} · ${esc(store.category||'골목 가게')}</small></span><span class="stock">메뉴 ${menus.length}개</span></div><div class="shop-carousel-head"><strong>오늘의 마감 메뉴</strong><small>고객 화면 미리보기</small></div><div class="shop-products">${menus.map(menu=>`<div class="shop-product"><img class="shop-product-photo" src="${image(menu)}" alt="${esc(menu.name)} 사진"><div class="shop-product-body"><strong class="shop-product-name">${esc(menu.name)}</strong><span class="shop-product-price"><b>${won(menu.price)}</b><del>${won(menu.originalPrice||menu.price)}</del></span><small class="shop-product-stock">${discountPercent(menu)}% 할인 · ${productAvailability(menu)}</small><p class="shop-product-desc">${esc(menu.desc)}</p></div></div>`).join('')||'<p class="muted">오늘 등록된 메뉴가 없습니다.</p>'}</div></article>`;
     return `${heading('FOR SHOP OWNERS','내 가게','손님에게 보이는 메뉴와 가격을 확인하세요.')}${ownerBanner()}<section class="panel owner-shop-panel"><div class="panel-title"><h2>가게 미리보기</h2><span>${menus.length}개</span></div><div class="owner-shop-preview">${preview}</div></section>`;
   }
-  const content=previousFeedPage().replace('서울 전역의 가상 가게','시연용 가상 가게').replace(/가격과 재고는 서버에 저장됩니다\./,'예약 상태는 서버에 저장됩니다.');
-  return content;
+  const highlights=visibleFeed().slice(0,3);
+  return `<div class="customer-feed-shell"><label class="search-field"><span aria-hidden="true">⌕</span><input id="feed-search" type="search" placeholder="원하는 메뉴나 가게 검색" value="${esc(feedQuery)}" aria-label="메뉴 검색"></label><div class="feed-highlight-grid" aria-label="가까운 가게의 오늘 메뉴">${highlights.map(menu=>`<button data-action="shop" data-value="${esc(menu.shop)}" aria-label="${esc(shop(menu.shop).name)} ${esc(menu.name)} 보기"><img src="${image(menu)}" alt=""></button>`).join('')}</div><div class="customer-feed-location">${locationNote()}</div>${stories()}<div class="feed-list">${visibleShopGroups().map(shopCard).join('')||'<div class="empty"><h2>표시할 메뉴가 없어요</h2><p>지역이나 검색어를 바꿔 보세요.</p></div>'}</div><button class="customer-feed-ai" data-action="ai-open">✦ AI 맞춤 한끼 추천</button></div>`;
 };
+const previousRender=render;
+render=function(){
+  previousRender();
+  const feed=state.mode!=='owner'&&state.tab==='feed';
+  document.body.classList.toggle('customer-feed-view',feed);
+  if(feed){
+    const selected=state.area&&state.area!=='all'?shop(state.area).area:state.area==='all'?'서울 전체':'성수로';
+    const brand=document.querySelector('.site-header .brand');
+    if(brand){brand.dataset.area=selected+' ⌄';brand.dataset.action='feed-area';brand.setAttribute('aria-label',selected+' 지역 선택');}
+  }
+};
+document.addEventListener('click',event=>{
+  const button=event.target.closest('[data-action="feed-area"]');
+  if(!button)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const select=document.querySelector('#area-select');select?.focus();select?.showPicker?.();
+},true);
 stories=function(){return `<div class="feed-meta"><span>오늘의 메뉴</span><div class="feed-meta-actions"><strong>${visibleFeed().length}개</strong><label class="feed-sort-label">정렬<select id="feed-sort" aria-label="오늘의 메뉴 정렬"><option value="latest" ${state.feedSort==='latest'?'selected':''}>최신순</option><option value="distance" ${state.feedSort==='distance'?'selected':''}>거리순</option><option value="price" ${state.feedSort==='price'?'selected':''}>가격순</option><option value="discount" ${state.feedSort==='discount'?'selected':''}>할인율순</option></select></label></div></div>`;};
 document.addEventListener('change',event=>{if(event.target.id!=='feed-sort')return;state.feedSort=event.target.value;persist();render();});
 document.addEventListener('input',event=>{if(event.target.id==='feed-search'){const count=document.querySelector('.feed-meta-actions strong');if(count)count.textContent=`${visibleFeed().length}개`}});
