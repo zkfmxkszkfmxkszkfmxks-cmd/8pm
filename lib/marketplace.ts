@@ -101,7 +101,7 @@ export async function ensureSeed(db: D1Database) {
     await db.batch(changes);
   }
   const date = today();
-  await db.prepare("UPDATE products SET listing_date=?,closing_at=CAST(strftime('%s', ? || 'T' || closing_label || ':00+09:00') AS INTEGER)*1000,status='active',updated_at=? WHERE sample=1 AND (listing_date<>? OR closing_at>410244480000)")
+  await db.prepare("UPDATE products SET listing_date=?,closing_at=CAST(strftime('%s', ? || 'T' || closing_label || ':00+09:00') AS INTEGER)*1000,status=CASE WHEN status='hidden' THEN 'hidden' ELSE 'active' END,updated_at=? WHERE sample=1 AND (listing_date<>? OR closing_at>410244480000)")
     .bind(date, date, now(), date).run();
 }
 

@@ -98,3 +98,7 @@
 .feed-sort-label{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;color:#496965;white-space:nowrap}
 .feed-sort-label select{height:38px;min-width:104px;padding:0 29px 0 10px;border:1px solid #bfe2dc;border-radius:11px;background:#fff;color:#174a45;font:inherit;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23174a45' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
 .feed-sort-label select:focus-visible{outline:2px solid #28b9ae;outline-offset:2px}
+.manage-bulk-actions{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.manage-bulk-actions button{padding:7px 10px;border:1px solid #d99a96;border-radius:9px;color:#b34440;background:#fff;font-size:.78rem;font-weight:800}
+.product-delete-entry{margin-top:10px;border-color:#d99a96;color:#b34440}
+.product-delete-help{margin:11px 0 18px;color:#587470;font-size:.83rem;line-height:1.55}

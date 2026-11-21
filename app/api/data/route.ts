@@ -142,9 +142,23 @@ export async function POST(request: Request) {
       const ownerShop=await selectedOwnerShop(db,body.shopId);
       const productId=String(int(body.productId)), status=text(body.status,20);
       if(!["active","sold_out"].includes(status))throw new ApiError(400,"invalid_status");
-      const changed=await db.prepare("UPDATE products SET status=?,updated_at=? WHERE id=? AND shop_id=?").bind(status,timestamp,productId,ownerShop).run();
+      const changed=await db.prepare("UPDATE products SET status=?,updated_at=? WHERE id=? AND shop_id=? AND status<>'hidden'").bind(status,timestamp,productId,ownerShop).run();
       if(!changed.meta.changes)throw new ApiError(404,"product_not_found");
       return json({ok:true});
+    }
+    if (action === "product-delete" || action === "product-delete-all") {
+      requireOwner(user);
+      const ownerShop=await selectedOwnerShop(db,body.shopId);
+      if (action === "product-delete") {
+        const productId=String(int(body.productId));
+        const changed=await db.prepare("UPDATE products SET status='hidden',updated_at=? WHERE id=? AND shop_id=? AND status<>'hidden'")
+          .bind(timestamp,productId,ownerShop).run();
+        if(!changed.meta.changes)throw new ApiError(404,"product_not_found");
+        return json({ok:true,count:changed.meta.changes});
+      }
+      const changed=await db.prepare("UPDATE products SET status='hidden',updated_at=? WHERE shop_id=? AND status<>'hidden'")
+        .bind(timestamp,ownerShop).run();
+      return json({ok:true,count:changed.meta.changes});
     }
     if (action === "product-create" || action === "product-update") {
       requireOwner(user);
@@ -163,7 +177,7 @@ export async function POST(request: Request) {
         return json({productId:Number(productId)},201);
       }
       const productId=String(int(body.productId));
-      const changed=await db.prepare("UPDATE products SET name=?,description=?,original_price=?,price=?,min_price=?,closing_label=?,closing_at=?,updated_at=? WHERE id=? AND shop_id=?")
+      const changed=await db.prepare("UPDATE products SET name=?,description=?,original_price=?,price=?,min_price=?,closing_label=?,closing_at=?,updated_at=? WHERE id=? AND shop_id=? AND status<>'hidden'")
         .bind(name,description,originalPrice,price,minPrice,closing,closeAt,timestamp,productId,ownerShop).run();
       if(!changed.meta.changes)throw new ApiError(404,"product_not_found");
       return json({ok:true});

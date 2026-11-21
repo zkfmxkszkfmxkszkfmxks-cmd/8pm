@@ -52,7 +52,7 @@ stories=function(){return `<div class="feed-meta"><span>오늘의 메뉴</span><
 document.addEventListener('change',event=>{if(event.target.id!=='feed-sort')return;state.feedSort=event.target.value;persist();render();});
 document.addEventListener('input',event=>{if(event.target.id==='feed-search'){const count=document.querySelector('.feed-meta-actions strong');if(count)count.textContent=`${visibleFeed().length}개`}});
 
-aiOpen=function(){overlay('골목세트',`<p class="muted">원하는 식사와 취향을 적으면 서로 다른 두 가게의 메뉴를 조합해 드려요.</p><p class="set-profile-note">${customerProfileNotes?`내 정보의 특이사항 반영 · ${esc(customerProfileNotes)}`:'내 정보에서 특이사항을 저장하면 추천에 자동 반영돼요.'}</p><textarea id="ai-prompt" rows="3" placeholder="예: 점심으로 샌드위치와 함께 먹을 음료 추천해줘">${esc(aiText)}</textarea><label class="voucher-select-label">상품권 조건<select id="set-voucher-code"><option value="">조건 없음</option><option value="seongdong">성동사랑상품권 · 두 가게 모두 사용 가능</option></select></label><button class="primary" data-action="ai-run">메뉴 조합 추천받기</button><p class="demo-note">AI는 등록된 상품만 고르고, 예약 가능 시간과 가게 간 이동은 서버에서 확인합니다.</p>`)};
+aiOpen=function(){overlay('맞춤 한끼',`<p class="muted">원하는 식사와 취향을 적으면 서로 다른 두 가게의 메뉴를 조합해 드려요.</p><p class="set-profile-note">${customerProfileNotes?`내 정보의 특이사항 반영 · ${esc(customerProfileNotes)}`:'내 정보에서 특이사항을 저장하면 추천에 자동 반영돼요.'}</p><textarea id="ai-prompt" rows="3" placeholder="예: 점심으로 샌드위치와 함께 먹을 음료 추천해줘">${esc(aiText)}</textarea><label class="voucher-select-label">상품권 조건<select id="set-voucher-code"><option value="">조건 없음</option><option value="seongdong">성동사랑상품권 · 두 가게 모두 사용 가능</option></select></label><button class="primary" data-action="ai-run">메뉴 조합 추천받기</button><p class="demo-note">AI는 등록된 상품만 고르고, 예약 가능 시간과 가게 간 이동은 서버에서 확인합니다.</p>`)};
 
 aiRun=async function(){
   aiText=$('#ai-prompt')?.value.trim()||'';if(!aiText)return toast('원하는 메뉴를 설명해 주세요.');
@@ -69,12 +69,12 @@ aiRun=async function(){
 
 showAiResult=function(){
   const sets=setCatalog();
-  overlay('골목세트 추천',`${sets.length?sets.map(set=>`<article class="reservation-set"><div class="reservation-set-top"><h3>${esc(set.name)}</h3><strong>${won(set.total)}</strong></div><p>${esc(set.reason)}</p>${set.products.map(p=>`<div class="reservation-set-item"><img src="${setProductImage(p)}" alt="${esc(p.name)} 사진"><span>${esc(p.shopName)} · ${esc(p.name)}<small>픽업 마감 ${deadlineText(p.closingAt)} · ${p.acceptsVoucher?'성동사랑상품권 사용 가능':'상품권 사용 불가'}</small></span><strong>${won(p.price*p.quantity)}</strong></div>`).join('')}<p class="muted">방문 순서: ${set.visits.map((v,i)=>`${i+1}. ${esc(shop(v.shopId).name)}`).join(' → ')}</p><button class="primary" data-action="set-detail" data-id="${esc(set.id)}">세트 보기</button></article>`).join(''):'<p class="muted">현재 조건과 픽업 시간에 맞는 조합이 없어요. 조건을 바꿔 다시 시도해 주세요.</p>'}<button class="outline-button full" data-action="ai-open">조건 다시 입력</button>`);
+  overlay('맞춤 한끼 추천',`${sets.length?sets.map(set=>`<article class="reservation-set"><div class="reservation-set-top"><h3>${esc(set.name)}</h3><strong>${won(set.total)}</strong></div><p>${esc(set.reason)}</p>${set.products.map(p=>`<div class="reservation-set-item"><img src="${setProductImage(p)}" alt="${esc(p.name)} 사진"><span>${esc(p.shopName)} · ${esc(p.name)}<small>픽업 마감 ${deadlineText(p.closingAt)} · ${p.acceptsVoucher?'성동사랑상품권 사용 가능':'상품권 사용 불가'}</small></span><strong>${won(p.price*p.quantity)}</strong></div>`).join('')}<p class="muted">방문 순서: ${set.visits.map((v,i)=>`${i+1}. ${esc(shop(v.shopId).name)}`).join(' → ')}</p><button class="primary" data-action="set-detail" data-id="${esc(set.id)}">맞춤 한끼 보기</button></article>`).join(''):'<p class="muted">현재 조건과 픽업 시간에 맞는 조합이 없어요. 조건을 바꿔 다시 시도해 주세요.</p>'}<button class="outline-button full" data-action="ai-open">조건 다시 입력</button>`);
 };
 
 function showSetDetail(id){
-  const set=setById(id);if(!set)return toast('추천 세트를 다시 불러와 주세요.');
-  overlay('골목세트 상세',`<div class="set-detail-head"><h3>${esc(set.name)}</h3><strong>${won(set.total)}</strong></div><p class="featured-set-reason">${esc(set.reason)}</p><div class="featured-set-products">${set.products.map(p=>`<div class="featured-set-product"><img src="${setProductImage(p)}" alt="${esc(p.name)} 사진"><strong>${esc(p.name)}</strong><small>${esc(p.shopName)}</small><b>${won(p.price*p.quantity)}</b><small>픽업 마감 ${deadlineText(p.closingAt)}</small></div>`).join('')}</div><p class="featured-set-meta">추천 방문 순서 · ${set.visits.map((visit,index)=>`${index+1}. ${esc(shop(visit.shopId).name)} (${deadlineText(visit.etaAt)} 예상)`).join(' → ')}</p><p class="featured-set-voucher">성동사랑상품권 ${set.voucherAvailable?'사용 가능':'두 가게 모두 사용 불가'}</p><p class="muted">각 가게에서 요청 시점 단가로 현장 결제합니다.</p><button class="primary" data-action="reserve-set" data-id="${esc(set.id)}">세트 예약 요청</button><button class="outline-button full" data-action="set-list">전체 보기</button>`);
+  const set=setById(id);if(!set)return toast('맞춤 한끼를 다시 불러와 주세요.');
+  overlay('맞춤 한끼 상세',`<div class="set-detail-head"><h3>${esc(set.name)}</h3><strong>${won(set.total)}</strong></div><p class="featured-set-reason">${esc(set.reason)}</p><div class="featured-set-products">${set.products.map(p=>`<div class="featured-set-product"><img src="${setProductImage(p)}" alt="${esc(p.name)} 사진"><strong>${esc(p.name)}</strong><small>${esc(p.shopName)}</small><b>${won(p.price*p.quantity)}</b><small>픽업 마감 ${deadlineText(p.closingAt)}</small></div>`).join('')}</div><p class="featured-set-meta">추천 방문 순서 · ${set.visits.map((visit,index)=>`${index+1}. ${esc(shop(visit.shopId).name)} (${deadlineText(visit.etaAt)} 예상)`).join(' → ')}</p><p class="featured-set-voucher">성동사랑상품권 ${set.voucherAvailable?'사용 가능':'두 가게 모두 사용 불가'}</p><p class="muted">각 가게에서 요청 시점 단가로 현장 결제합니다.</p><button class="primary" data-action="reserve-set" data-id="${esc(set.id)}">맞춤 한끼 예약 요청</button><button class="outline-button full" data-action="set-list">전체 보기</button>`);
 }
 
 
@@ -88,12 +88,12 @@ draftView=function(){
 
 edit=function(id){
   const menu=ownerMenus().find(item=>item.id===Number(id));if(!menu)return;
-  overlay('메뉴 수정',`<form id="edit-form" data-id="${menu.id}"><label class="form-label">상품 이름<input name="name" required maxlength="40" value="${esc(menu.name)}"></label><div class="form-grid"><label class="form-label">정가 (원)<input name="price" type="number" min="100" required value="${menu.originalPrice||menu.price}"></label><label class="form-label">최저 판매가 (원)<input name="minPrice" type="number" min="0" required value="${menu.minPrice||0}"></label></div><label class="form-label">픽업 마감시간<input name="closing" type="time" required value="${esc(menu.closing||'18:00')}"></label><label class="form-label">상품 설명<textarea name="desc" rows="3" maxlength="300">${esc(menu.desc||'')}</textarea></label><p class="muted">현재 적용 판매가 ${won(menu.price)} · ${productAvailability(menu)}</p><button class="primary" type="submit">변경 저장</button></form>`);
+  overlay('메뉴 수정',`<form id="edit-form" data-id="${menu.id}"><label class="form-label">상품 이름<input name="name" required maxlength="40" value="${esc(menu.name)}"></label><div class="form-grid"><label class="form-label">정가 (원)<input name="price" type="number" min="100" required value="${menu.originalPrice||menu.price}"></label><label class="form-label">최저 판매가 (원)<input name="minPrice" type="number" min="0" required value="${menu.minPrice||0}"></label></div><label class="form-label">픽업 마감시간<input name="closing" type="time" required value="${esc(menu.closing||'18:00')}"></label><label class="form-label">상품 설명<textarea name="desc" rows="3" maxlength="300">${esc(menu.desc||'')}</textarea></label><p class="muted">현재 적용 판매가 ${won(menu.price)} · ${productAvailability(menu)}</p><button class="primary" type="submit">변경 저장</button><button class="outline-button full product-delete-entry" type="button" data-action="product-delete" data-id="${menu.id}">품목 삭제</button></form>`);
 };
 
 managePage=function(){
   const store=shop(OWNER_SHOP_ID),accepts=!!store.acceptsVoucher;
-  return `${heading('FOR SHOP OWNERS','등록 메뉴 관리',store.name+'의 판매 상태와 현재 가격을 확인하세요.')}${ownerBanner()}<section class="panel"><div class="panel-title"><h2>오늘의 메뉴</h2><span>${ownerMenus().length}개</span></div>${ownerMenus().map(menu=>`<div class="manage-item"><img src="${image(menu)}" alt=""><div><strong>${esc(menu.name)}</strong><small>정가 ${won(menu.originalPrice)} · 현재 적용 판매가 ${won(menu.price)} · 최저 ${won(menu.minPrice||0)} · ${productAvailability(menu)}</small></div><button class="outline-button" data-action="edit" data-id="${menu.id}">수정</button><button class="outline-button" data-action="product-status" data-id="${menu.id}" data-value="${menu.status==='sold_out'?'active':'sold_out'}">${menu.status==='sold_out'?'판매 재개':'품절 처리'}</button></div>`).join('')||'<p class="muted">오늘 등록된 메뉴가 없습니다.</p>'}</section><section class="panel voucher-settings"><div class="panel-title"><h2>가게 설정</h2></div><div class="voucher-settings-row"><div><strong>서울사랑상품권 사용</strong><p>손님 추천에 사용 가능 여부가 표시됩니다.</p></div><button type="button" data-action="voucher-toggle" role="switch" aria-checked="${accepts}" class="voucher-switch ${accepts?'on':''}"><span></span></button></div><small class="voucher-settings-state">현재 ${accepts?'사용 가능':'사용 불가'}</small></section>`;
+  return `${heading('FOR SHOP OWNERS','등록 메뉴 관리',store.name+'의 판매 상태와 현재 가격을 확인하세요.')}${ownerBanner()}<section class="panel"><div class="panel-title"><h2>오늘의 메뉴</h2><div class="manage-bulk-actions"><span>${ownerMenus().length}개</span><button type="button" data-action="product-delete-all" ${ownerMenus().length?'':'disabled'}>전체 삭제</button></div></div>${ownerMenus().map(menu=>`<div class="manage-item"><img src="${image(menu)}" alt=""><div><strong>${esc(menu.name)}</strong><small>정가 ${won(menu.originalPrice)} · 현재 적용 판매가 ${won(menu.price)} · 최저 ${won(menu.minPrice||0)} · ${productAvailability(menu)}</small></div><button class="outline-button" data-action="edit" data-id="${menu.id}">수정</button><button class="outline-button" data-action="product-status" data-id="${menu.id}" data-value="${menu.status==='sold_out'?'active':'sold_out'}">${menu.status==='sold_out'?'판매 재개':'품절 처리'}</button></div>`).join('')||'<p class="muted">오늘 등록된 메뉴가 없습니다.</p>'}</section><section class="panel voucher-settings"><div class="panel-title"><h2>가게 설정</h2></div><div class="voucher-settings-row"><div><strong>서울사랑상품권 사용</strong><p>손님 추천에 사용 가능 여부가 표시됩니다.</p></div><button type="button" data-action="voucher-toggle" role="switch" aria-checked="${accepts}" class="voucher-switch ${accepts?'on':''}"><span></span></button></div><small class="voucher-settings-state">현재 ${accepts?'사용 가능':'사용 불가'}</small></section>`;
 };
 
 ownerOrderCard=function(order){
@@ -150,7 +150,7 @@ async function requestReservation(productIds,recommendationId,useVoucher,voucher
 document.addEventListener('click',event=>{
   const button=event.target.closest('[data-action]');if(!button)return;
   const action=button.dataset.action;
-  if(!['product-detail','reserve-product','reserve-set','set-list','set-detail','reservation-response','product-status','replacement-open','replacement-choose','replacement-select','replacement-apply','replacement-restart','replacement-back'].includes(action))return;
+  if(!['product-detail','reserve-product','reserve-set','set-list','set-detail','reservation-response','product-status','product-delete','product-delete-confirm','product-delete-all','product-delete-all-confirm','replacement-open','replacement-choose','replacement-select','replacement-apply','replacement-restart','replacement-back'].includes(action))return;
   event.preventDefault();event.stopImmediatePropagation();
   if(action==='replacement-open')return void openReplacement(button.dataset.id);
   if(action==='replacement-choose')return showReplacementPicker();
@@ -167,6 +167,22 @@ document.addEventListener('click',event=>{
   if(action==='set-list')return showAiResult();
   if(action==='set-detail')return showSetDetail(button.dataset.id);
   if(!demoSession.signedIn)return signIn();
+  if(action==='product-delete'||action==='product-delete-all'){
+    if(!backendSession.owner)return toast('점주 계정만 메뉴를 삭제할 수 있어요.');
+    const single=action==='product-delete',menu=single?ownerMenus().find(item=>item.id===Number(button.dataset.id)):null;
+    if(single&&!menu)return toast('삭제할 메뉴를 찾지 못했어요.');
+    const count=ownerMenus().length;
+    if(!single&&!count)return;
+    overlay(single?'품목 삭제':'품목 전체 삭제',`<p class="muted">${single?`‘${esc(menu.name)}’ 메뉴를 삭제할까요?`:`${esc(shop(OWNER_SHOP_ID).name)}의 메뉴 ${count}개를 모두 삭제할까요?`}</p><p class="product-delete-help">삭제한 메뉴는 고객 피드와 새 예약·추천에서 빠집니다. 이미 접수된 주문 내역은 유지됩니다.</p><div class="delete-order-actions"><button class="outline-button" data-action="close">취소</button><button class="delete-order-confirm" data-action="${single?'product-delete-confirm':'product-delete-all-confirm'}" ${single?`data-id="${menu.id}"`:''}>${single?'품목 삭제':'전체 삭제'}</button></div>`);
+    return;
+  }
+  if(action==='product-delete-confirm'||action==='product-delete-all-confirm')return void withServer(async()=>{
+    if(!backendSession.owner)return;
+    button.disabled=true;
+    const all=action==='product-delete-all-confirm';
+    await api(all?'product-delete-all':'product-delete',{shopId:ownerShopId,...(all?{}:{productId:Number(button.dataset.id)})});
+    close();await refreshServerData();toast(all?'메뉴를 모두 삭제했어요.':'메뉴를 삭제했어요.');
+  });
   if(action==='reserve-product')return void requestReservation([Number(button.dataset.id)],null,false);
   if(action==='reserve-set'){
     const set=setById(button.dataset.id);
