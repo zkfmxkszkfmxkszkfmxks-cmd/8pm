@@ -1,5 +1,5 @@
-import { env } from "cloudflare:workers";
 import { getChatGPTUser } from "@/app/chatgpt-auth";
+import { geminiJson } from "@/lib/gemini";
 import { ApiError, currentPrice, database, distanceKm, ensureSeed, errorResponse, json, now, requireUser, syncUser, today } from "@/lib/marketplace";
 import { availableProduct, reservationPlan } from "@/lib/reservations";
 
@@ -97,26 +97,13 @@ export async function POST(request: Request) {
     const timestamp = now();
     const candidates = rows.results.filter(p => availableProduct(p, timestamp) && distanceKm(origin, { lat: Number(p.lat), lng: Number(p.lng) }) <= 3 && (!voucherCode || voucherEligible(p))).slice(0, 60);
     if (new Set(candidates.map(p => p.shop_id)).size < 2) return json({ sets: [], message: "eligible_products_missing" });
-    const runtimeEnv = env as unknown as { OPENAI_API_KEY?: string; OPENAI_MODEL?: string };
     const catalog = candidates.map(p => ({ id: String(p.id), name: p.name, category: p.category || "음식", description: p.description, shop: p.shop_name }));
     let parsed: { budget: number | null; sets: Array<{ productIds: string[]; reason: string }> } = { budget: null, sets: [] };
     try {
-      if (!runtimeEnv.OPENAI_API_KEY) throw new Error("api_key_not_configured");
-      const response = await fetch("https://api.openai.com/v1/responses", { method: "POST",
-      headers: { Authorization: `Bearer ${runtimeEnv.OPENAI_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: runtimeEnv.OPENAI_MODEL || "gpt-4o-mini", store: false, max_output_tokens: 800,
-        input: [{ role: "system", content: "고객 요청에 맞춰 함께 먹기 좋은 두 상품 조합을 최대 3개 제안하세요. 제공된 상품 ID만 사용하고 반드시 서로 다른 가게의 상품 두 개를 고르세요. 맛의 조화와 고객 조건을 근거로 각 조합의 이유를 한국어 한 문장으로 쓰세요. 상품이나 가게를 만들어내지 마세요. budget은 고객이 명시한 총 예산(원)만 숫자로, 없으면 null로 반환하세요." },
-          { role: "user", content: JSON.stringify({ request: prompt, catalog }) }],
-        text: { format: { type: "json_schema", name: "menu_sets", strict: true, schema } } }), signal: AbortSignal.timeout(20_000) });
-      if (!response.ok) {
-        const problem = await response.json().catch(() => null) as { error?: { code?: string; type?: string } } | null;
-        console.error("OpenAI set recommendation failed", { status: response.status, code: problem?.error?.code, type: problem?.error?.type });
-        throw new Error("ai_service_unavailable");
-      }
-      const data = await response.json() as { status?: string; output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }> };
-      const output = data.output?.flatMap(item => item.type === "message" ? item.content || [] : []).find(part => part.type === "output_text")?.text;
-      if (data.status !== "completed" || !output) throw new Error("ai_response_incomplete");
-      parsed = JSON.parse(output);
+      parsed = await geminiJson<typeof parsed>(
+        "고객 요청에 맞춰 함께 먹기 좋은 두 상품 조합을 최대 3개 제안하세요. 제공된 상품 ID만 사용하고 반드시 서로 다른 가게의 상품 두 개를 고르세요. 맛의 조화와 고객 조건을 근거로 각 조합의 이유를 한국어 한 문장으로 쓰세요. 상품이나 가게를 만들어내지 마세요. budget은 고객이 명시한 총 예산(원)만 숫자로, 없으면 null로 반환하세요.",
+        { request: prompt, catalog }, schema,
+      );
     } catch (error) {
       console.error("Using catalog-based set recommendation", { cause: error instanceof Error ? error.message : "unknown" });
     }

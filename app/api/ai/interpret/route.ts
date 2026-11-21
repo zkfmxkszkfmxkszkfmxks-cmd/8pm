@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { geminiJson } from "@/lib/gemini";
 
 export const runtime = "edge";
 
@@ -79,29 +79,11 @@ export async function POST(request: Request) {
     return json({ error: "invalid_input" }, 400);
   }
 
-  const runtimeEnv = env as unknown as { OPENAI_API_KEY?: string; OPENAI_MODEL?: string };
-  if (!runtimeEnv.OPENAI_API_KEY) return json({ error: "api_key_not_configured" }, 503);
-
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${runtimeEnv.OPENAI_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: runtimeEnv.OPENAI_MODEL || "gpt-4o-mini",
-        store: false,
-        input: [{ role: "system", content: instructions[kind] }, { role: "user", content: text.trim() }],
-        text: { format: { type: "json_schema", name: kind === "recommend" ? "recommend_intent" : "product_draft", strict: true, schema: kind === "recommend" ? recommendSchema : productSchema } },
-        max_output_tokens: 350,
-      }),
-    });
-    if (!response.ok) return json({ error: "ai_service_unavailable" }, 502);
-    const result = await response.json() as { status?: string; output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }> };
-    if (result.status !== "completed") return json({ error: "ai_response_incomplete" }, 502);
-    const outputText = result.output?.flatMap(item => item.type === "message" ? item.content || [] : []).find(part => part.type === "output_text")?.text;
-    if (!outputText) return json({ error: "ai_response_missing" }, 502);
-    const parsed = JSON.parse(outputText) as Record<string, unknown>;
+    const parsed = await geminiJson<Record<string, unknown>>(instructions[kind], text.trim(), kind === "recommend" ? recommendSchema : productSchema);
     return json({ data: validated(kind, parsed) });
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "api_key_not_configured") return json({ error: error.message }, 503);
     return json({ error: "ai_service_unavailable" }, 502);
   }
 }
