@@ -64,8 +64,9 @@ export const orders = sqliteTable("orders", {
   confirmedAt: integer("confirmed_at"),
   status: text("status", { enum: ["waiting", "confirmed", "sold_out", "timeout", "completed", "no_show"] }).notNull().default("waiting"),
   recommendationId: text("recommendation_id"),
+  replacementOfOrderId: text("replacement_of_order_id"),
   createdAt: integer("created_at").notNull(),
-}, (table) => [index("orders_customer_created_idx").on(table.customerUserId, table.createdAt)]);
+}, (table) => [index("orders_customer_created_idx").on(table.customerUserId, table.createdAt), uniqueIndex("orders_replacement_source_unique").on(table.replacementOfOrderId)]);
 
 export const orderItems = sqliteTable("order_items", {
   id: integer("id").primaryKey({ autoIncrement: true }),

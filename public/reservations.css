@@ -25,6 +25,7 @@
 .featured-set{width:100%;min-width:0;margin:18px 0 22px;padding:20px;border:1px solid #c9e7e2;border-radius:22px;background:linear-gradient(145deg,#effbf8,#fff 70%);box-shadow:0 12px 28px #123e3610;overflow:hidden}
 .featured-set-head,.set-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .featured-set-head small{color:#16877f;font-size:.78rem;font-weight:800}
+.featured-set-intro{margin:4px 0;color:#527872;font-size:.78rem;line-height:1.35}
 .featured-set-head h2,.set-detail-head h3{margin:4px 0 0;color:#123a38;font-size:1.18rem;line-height:1.25}
 .featured-set-head>strong,.set-detail-head>strong{flex:none;color:#087f75;font-size:1.12rem;white-space:nowrap}
 .featured-set-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0}
@@ -46,5 +47,25 @@
 .reservation-set-item span{flex:1}
 .set-detail-head{margin:12px 0}
 .reservation-order-time{font-size:.76rem;color:#667b75}
+.reservation-waiting-message{margin:13px 0;padding:12px 14px;border-radius:12px;background:#eaf8f5;color:#147c73;font-size:.84rem;font-weight:800}
+.replacement-start{margin:14px 0 0}
+.replacement-alert-icon{display:grid;place-items:center;width:54px;height:54px;margin:12px auto 18px;border:2px solid #e29b72;border-radius:50%;color:#b96035;font-size:1.9rem;font-weight:900}
+.replacement-alert-title,.replacement-alert-copy{text-align:center}
+.replacement-alert-title{margin:0 0 8px!important;font-size:1.22rem!important;color:#173e3a}
+.replacement-alert-copy{margin:0 0 22px;color:#56716d;font-size:.88rem;line-height:1.5}
+.replacement-sold-row{display:flex;align-items:center;gap:12px;margin:0 0 22px;padding:12px;border:1px solid #d8e9e5;border-radius:15px;background:#f7fbfa}
+.replacement-sold-row img{width:64px;height:64px;object-fit:cover;border-radius:11px}
+.replacement-sold-row span{flex:1;min-width:0}.replacement-sold-row strong,.replacement-sold-row small{display:block}.replacement-sold-row small{margin-top:3px;color:#6e8580;font-size:.75rem}
+.replacement-sold-row b{padding:5px 9px;border-radius:20px;background:#f5e5df;color:#a75139;font-size:.76rem}
+.sheet .replacement-sold-row+.outline-button,.sheet .replacement-sold-row~.outline-button{margin-top:10px}
+.replacement-location{margin:0 0 12px;padding:13px;border:1px solid #cde9e3;border-radius:25px;background:#eefaf7;color:#146f67;font-size:.86rem;font-weight:800}
+.replacement-options{max-height:40dvh;overflow:auto}
+.replacement-option{display:flex;align-items:center;gap:12px;width:100%;padding:12px 3px;border-bottom:1px solid #dceae7;text-align:left}
+.replacement-option img{width:68px;height:68px;object-fit:cover;border-radius:12px;background:#e9eeec}
+.replacement-option span{flex:1;min-width:0}.replacement-option strong,.replacement-option small,.replacement-option b{display:block}.replacement-option strong{font-size:.92rem}.replacement-option small{margin:4px 0;color:#687d79;font-size:.72rem}.replacement-option b{color:#087e75;font-size:.95rem}
+.replacement-option i{width:24px;height:24px;border:2px solid #9fc5bd;border-radius:50%;flex:none}.replacement-option.selected i{border:7px solid #1db9ae}
+.replacement-kept,.replacement-notice{margin:12px 0;color:#607a75;font-size:.77rem;line-height:1.5}
+.replacement-total{display:flex;align-items:center;gap:8px;margin:15px 0;padding-top:14px;border-top:1px solid #dceae7}.replacement-total span{flex:1;font-size:.82rem}.replacement-total strong{color:#087e75;font-size:1.1rem}.replacement-total small{padding:4px 7px;border-radius:12px;background:#e1f5ef;color:#16877f;font-size:.7rem;font-weight:800}
+.sheet [data-action="replacement-apply"],.sheet [data-action="replacement-back"]{margin-top:9px}
 @media(max-width:600px){.reservation-actions{flex-direction:column;align-items:stretch}.reservation-actions .primary,.reservation-actions .outline-button{width:100%;margin-top:8px}}
 @media(max-width:420px){.featured-set{padding:15px}.featured-set-head h2{font-size:1rem}.featured-set-head>strong{font-size:1rem}.featured-set-product img{height:82px}.featured-set-product strong{font-size:.8rem}}

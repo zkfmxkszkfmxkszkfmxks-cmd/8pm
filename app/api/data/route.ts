@@ -1,6 +1,7 @@
 import { getChatGPTUser } from "@/app/chatgpt-auth";
 import { ApiError, closingMillis, currentPrice, database, ensureSeed, errorResponse, isOwner, json, now, productForClient, requireOwner, requireUser, shopForClient, syncUser, today } from "@/lib/marketplace";
 import { createReservation, ownerReservationResponse, reconcileReservations } from "@/lib/reservations";
+import { applyReplacement, replacementOptions } from "@/lib/replacements";
 
 type Row = Record<string, any>;
 const int = (value: unknown) => Number.isSafeInteger(Number(value)) ? Number(value) : NaN;
@@ -26,7 +27,8 @@ async function orderRows(db: D1Database, userId: string, owner: boolean, ownerSh
     const statuses=stops.map(s=>s.status);
     const reservationStatus=statuses.includes("sold_out")||statuses.includes("cancelled")?"sold_out":statuses.includes("timeout")?"timeout":statuses.includes("no_show")?"no_show":statuses.every(s=>s==="completed")?"completed":statuses.every(s=>s==="accepted"||s==="completed")?"confirmed":"waiting";
     const recommendation=row.recommendation_id?await db.prepare("SELECT reason FROM recommendations WHERE id=?").bind(row.recommendation_id).first<Row>():null;
-    result.push({ id: Number(row.id), date: new Intl.DateTimeFormat("sv-SE", {timeZone:"Asia/Seoul",dateStyle:"short",timeStyle:"short"}).format(row.created_at), items: items.results.map(i => ({id:Number(i.product_id),shop:i.shop_id,name:i.name,qty:i.quantity,price:i.unit_price,setDiscount:i.set_discount})), subtotal:row.subtotal,setDiscount:row.set_discount,total:row.total,paymentMethod:row.payment_method||"onsite",useVoucher:Boolean(row.use_voucher),origin:{lat:row.origin_lat,lng:row.origin_lng},stops,status:owner?row.pickup_status:reservationStatus,reservationStatus:row.response_deadline_at?row.status:reservationStatus,requestedAt:row.requested_at||row.created_at,responseDeadlineAt:row.response_deadline_at,confirmedAt:row.confirmed_at,setId:row.recommendation_id,recommendationId:row.recommendation_id,recommendationReason:recommendation?.reason||null,completedAt:row.completed_at,sample:false });
+    const replacement = !owner && reservationStatus === "sold_out" ? await db.prepare("SELECT id FROM orders WHERE replacement_of_order_id=? LIMIT 1").bind(row.id).first<Row>() : null;
+    result.push({ id: Number(row.id), date: new Intl.DateTimeFormat("sv-SE", {timeZone:"Asia/Seoul",dateStyle:"short",timeStyle:"short"}).format(row.created_at), items: items.results.map(i => ({id:Number(i.product_id),shop:i.shop_id,name:i.name,qty:i.quantity,price:i.unit_price,setDiscount:i.set_discount})), subtotal:row.subtotal,setDiscount:row.set_discount,total:row.total,paymentMethod:row.payment_method||"onsite",useVoucher:Boolean(row.use_voucher),origin:{lat:row.origin_lat,lng:row.origin_lng},stops,status:owner?row.pickup_status:reservationStatus,reservationStatus:row.response_deadline_at?row.status:reservationStatus,requestedAt:row.requested_at||row.created_at,responseDeadlineAt:row.response_deadline_at,confirmedAt:row.confirmed_at,setId:row.recommendation_id,recommendationId:row.recommendation_id,recommendationReason:recommendation?.reason||null,replacementOfOrderId:row.replacement_of_order_id?Number(row.replacement_of_order_id):null,replacementOrderId:replacement?Number(replacement.id):null,completedAt:row.completed_at,sample:false });
   }
   return result;
 }
@@ -50,6 +52,10 @@ export async function GET(request: Request) {
       return json({ids:rows.results.map(r=>Number(r.product_id))});
     }
     if (view === "orders") return json({orders:await orderRows(db,signed.userId,false)});
+    if (view === "replacements") {
+      const orderId=String(int(new URL(request.url).searchParams.get("orderId")));
+      return json(await replacementOptions(db,signed.userId,orderId));
+    }
     if (view === "owner-orders") { requireOwner(user); return json({orders:await orderRows(db,signed.userId,true,await selectedOwnerShop(db,new URL(request.url).searchParams.get("shopId")))}); }
     if (view === "notifications") {
       const rows = await db.prepare("SELECT id,kind,title,body,order_id,read_at,created_at FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 50").bind(signed.userId).all<Row>();
@@ -78,6 +84,10 @@ export async function POST(request: Request) {
     if (action === "reservation-create") {
       const result = await createReservation(db, user.userId, body, timestamp);
       return json(result, 201);
+    }
+    if (action === "replacement-apply") {
+      const orderId=String(int(body.orderId)), productId=String(int(body.productId));
+      return json(await applyReplacement(db,user.userId,orderId,productId,timestamp),201);
     }
     if (action === "hide-order") {
       const orderId=String(int(body.orderId));

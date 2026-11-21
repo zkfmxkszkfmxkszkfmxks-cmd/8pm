@@ -43,6 +43,13 @@
       "when": 1795229901217,
       "tag": "0005_robust_millenium_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1795232221048,
+      "tag": "0006_nasty_joseph",
+      "breakpoints": true
     }
   ]
 }

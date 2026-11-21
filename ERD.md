@@ -10,6 +10,7 @@ erDiagram
     ORDERS ||--|{ ORDER_PICKUPS : requires
     SHOPS ||--o{ ORDER_PICKUPS : responds_to
     RECOMMENDATIONS o|--o{ ORDERS : used_for
+    ORDERS o|--o| ORDERS : replaced_by
 
     PRODUCTS {
       text id PK
@@ -39,6 +40,7 @@ erDiagram
       integer confirmed_at
       text status "waiting | confirmed | sold_out | timeout | completed | no_show"
       text recommendation_id FK
+      text replacement_of_order_id "original sold-out order, unique"
       integer total
       text payment_method "onsite"
     }
@@ -63,3 +65,5 @@ erDiagram
 ```
 
 상품에 등록 수량 필드는 없습니다. `ORDER_ITEMS.quantity`는 기존 주문 기록과 호환을 위해 남겨 두며 신규 예약 요청은 항상 1로 저장합니다. 예약 전체 상태는 가게별 `ORDER_PICKUPS.status`에서 계산합니다. `waiting`이 모두 `accepted`가 되면 확정하고, `sold_out` 또는 `timeout`이 발생하면 종료합니다. 픽업 마감 후 미수령은 `no_show`입니다.
+
+품절 주문에서 대체 메뉴를 선택하면 원래 주문은 기록으로 남고 새 예약을 만듭니다. `replacement_of_order_id`로 원래 주문을 연결하며 한 주문에는 대체 예약을 한 번만 만들 수 있습니다. 새 주문의 메뉴 가격과 픽업 기한을 다시 계산하고 해당 가게에 새 응답을 요청합니다.

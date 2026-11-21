@@ -63,7 +63,7 @@ export async function reconcileReservations(db: D1Database, timestamp = now()) {
   for (const order of active.results) await syncOrderState(db, String(order.id), timestamp);
 }
 
-export async function createReservation(db: D1Database, userId: string, body: Row, timestamp = now()) {
+export async function createReservation(db: D1Database, userId: string, body: Row, timestamp = now(), replacementOfOrderId: string | null = null) {
   const ids = Array.isArray(body.productIds) ? body.productIds.map(String) : [];
   if (!ids.length || ids.length > 2 || new Set(ids).size !== ids.length || ids.some(id => !/^\d+$/.test(id))) throw new ApiError(400, "invalid_items");
   const origin = { lat: Number(body.origin?.lat), lng: Number(body.origin?.lng) };
@@ -95,8 +95,8 @@ export async function createReservation(db: D1Database, userId: string, body: Ro
   const orderId = String(timestamp * 1000 + Math.floor(Math.random() * 1000));
   const subtotal = products.reduce((sum, p) => sum + p.current_price, 0);
   const code = String(Math.floor(100000 + Math.random() * 900000));
-  const statements: D1PreparedStatement[] = [db.prepare("INSERT INTO orders (id,customer_user_id,subtotal,set_discount,total,payment_method,use_voucher,origin_lat,origin_lng,requested_at,response_deadline_at,status,recommendation_id,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-    .bind(orderId, userId, subtotal, 0, subtotal, "onsite", body.useVoucher ? 1 : 0, origin.lat, origin.lng, timestamp, timestamp + RESPONSE_WINDOW_MS, "waiting", recommendationId, timestamp)];
+  const statements: D1PreparedStatement[] = [db.prepare("INSERT INTO orders (id,customer_user_id,subtotal,set_discount,total,payment_method,use_voucher,origin_lat,origin_lng,requested_at,response_deadline_at,status,recommendation_id,replacement_of_order_id,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+    .bind(orderId, userId, subtotal, 0, subtotal, "onsite", body.useVoucher ? 1 : 0, origin.lat, origin.lng, timestamp, timestamp + RESPONSE_WINDOW_MS, "waiting", recommendationId, replacementOfOrderId, timestamp)];
   products.forEach(product => statements.push(db.prepare("INSERT INTO order_items (order_id,product_id,shop_id,name,quantity,unit_price,set_discount) VALUES (?,?,?,?,?,?,?)")
     .bind(orderId, product.id, product.shop_id, product.name, 1, product.current_price, 0)));
   stops.forEach((stop, index) => statements.push(db.prepare("INSERT INTO order_pickups (order_id,shop_id,sequence,status,eta_at,pickup_deadline_at,pickup_code,created_at) VALUES (?,?,?,?,?,?,?,?)")

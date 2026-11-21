@@ -6,12 +6,12 @@ const requestTimer = deadline => `<time class="reservation-timer" data-deadline=
 const shopOrderTotal = (order,shopId) => order.items.filter(item=>item.shop===shopId).reduce((sum,item)=>sum+item.price*item.qty,0);
 const customerResponseLabel = stop => stop.responseStatus==='sold_out'?'재고 부족':stop.status==='cancelled'?'요청 종료':stop.responseStatus==='accepted'?'수락':stop.responseStatus==='timeout'?'응답 시간 초과':'확인 중';
 const customerReceiptLabel = stop => stop.receiptStatus==='completed'?'수령 완료':stop.receiptStatus==='no_show'?'미수령':['sold_out','cancelled','timeout'].includes(stop.status)?'수령 해당 없음':'수령 대기';
-let featuredSets=[],featuredAttemptKey='',featuredLoading=false,featuredLastGeneratedAt=0;
+let featuredSets=[],featuredAttemptKey='',featuredLoading=false,featuredLastGeneratedAt=0,replacementData=null,replacementSelectedId=null;
 const setCatalog=()=>[...featuredSets,...(Array.isArray(aiResult)?aiResult:[])].filter((item,index,all)=>all.findIndex(other=>other.id===item.id)===index);
 const setById=id=>setCatalog().find(item=>item.id===id);
 const setProductImage=product=>esc(product.image?.startsWith('assets/')?product.image:product.image||'assets/croissant.jpg');
 function featuredSetCard(set){
-  return `<section class="featured-set" aria-label="오늘의 마감한끼"><div class="featured-set-head"><div><small>오늘의 마감한끼</small><h2>${esc(set.name||set.products.map(p=>p.name).join(' + '))}</h2></div><strong>${won(set.total)}</strong></div><div class="featured-set-products">${set.products.map(p=>`<div class="featured-set-product"><img src="${setProductImage(p)}" alt="${esc(p.name)} 사진" loading="lazy"><strong>${esc(p.name)}</strong><small>${esc(p.shopName)}</small><b>${won(p.price*p.quantity)}</b></div>`).join('')}</div><p class="featured-set-reason" title="${esc(set.reason)}">${esc(set.reason)}</p><p class="featured-set-meta">방문 순서 · ${set.visits.map((visit,index)=>`${index+1}. ${esc(shop(visit.shopId)?.name||'가게')}`).join(' → ')}</p><p class="featured-set-meta">픽업 마감 · ${set.products.map(p=>`${esc(p.shopName)} ${deadlineText(p.closingAt)}`).join(' · ')}</p><p class="featured-set-voucher">성동사랑상품권 ${set.voucherAvailable?'사용 가능':'두 가게 모두 사용 불가'}</p><div class="featured-set-actions"><button class="outline-button" data-action="set-list">전체 보기</button><button class="primary" data-action="set-detail" data-id="${esc(set.id)}">세트 보기</button></div></section>`;
+  return `<section class="featured-set" aria-label="오늘의 마감한끼"><div class="featured-set-head"><div><small>오늘의 마감한끼</small><p class="featured-set-intro">내 주변 가게에서 함께 먹기 좋은 메뉴를 조합해 추천해요.</p><h2>${esc(set.name||set.products.map(p=>p.name).join(' + '))}</h2></div><strong>${won(set.total)}</strong></div><div class="featured-set-products">${set.products.map(p=>`<div class="featured-set-product"><img src="${setProductImage(p)}" alt="${esc(p.name)} 사진" loading="lazy"><strong>${esc(p.name)}</strong><small>${esc(p.shopName)}</small><b>${won(p.price*p.quantity)}</b></div>`).join('')}</div><p class="featured-set-reason" title="${esc(set.reason)}">${esc(set.reason)}</p><p class="featured-set-meta">방문 순서 · ${set.visits.map((visit,index)=>`${index+1}. ${esc(shop(visit.shopId)?.name||'가게')}`).join(' → ')}</p><p class="featured-set-meta">픽업 마감 · ${set.products.map(p=>`${esc(p.shopName)} ${deadlineText(p.closingAt)}`).join(' · ')}</p><p class="featured-set-voucher">성동사랑상품권 ${set.voucherAvailable?'사용 가능':'두 가게 모두 사용 불가'}</p><div class="featured-set-actions"><button class="outline-button" data-action="set-list">전체 보기</button><button class="primary" data-action="set-detail" data-id="${esc(set.id)}">세트 보기</button></div></section>`;
 }
 state.cart=[];state.cartSet=null;persist();
 
@@ -119,9 +119,27 @@ ownerOrdersPage=function(){
   return `${heading('FOR SHOP OWNERS','들어온 주문',`${esc(shop(OWNER_SHOP_ID).name)} 진행 중 ${pending.length}건 · 수락 ${accepted.length}건 · 완료 ${done.length}건`)}${ownerBanner()}${list.length?'<div class="order-bulk-actions"><button data-action="delete-all-orders" data-value="owner">전체 삭제</button></div>':''}${section('진행 중인 주문',pending,'응답을 기다리는 요청이 없습니다.')}${section('수락한 주문',accepted,'수락한 주문이 없습니다.')}${section('완료',done,'종료된 주문이 없습니다.')}<p class="demo-note">예약 요청은 5분 안에 응답해야 합니다. 결제는 고객이 각 가게에서 현장 결제합니다.</p>`;
 };
 
+async function openReplacement(orderId){
+  await withServer(async()=>{
+    const response=await fetch('/api/data?view=replacements&orderId='+encodeURIComponent(orderId),{cache:'no-store'});
+    const data=await response.json();if(!response.ok)throw Error(data.error||'replacement_unavailable');
+    replacementData=data;replacementSelectedId=data.options[0]?.id||null;
+    if(data.replacementOrderId){toast('이미 대체 예약을 요청했어요.');return;}
+    overlay('품절 메뉴 안내',`<div class="replacement-alert-icon" aria-hidden="true">!</div><h3 class="replacement-alert-title">일부 메뉴가 품절되었어요</h3><p class="replacement-alert-copy">${esc(data.soldOut.name)}가 품절되어 다른 메뉴로 교체할 수 있어요.</p><div class="replacement-sold-row"><img src="${setProductImage(data.soldOut)}" alt=""><span><strong>${esc(data.soldOut.name)}</strong><small>${esc(data.soldOut.shopName)}</small></span><b>품절</b></div>${data.kept&&!data.kept.available?'<p class="replacement-notice">함께 예약한 메뉴도 현재 예약할 수 없어 처음부터 다시 골라 주세요.</p>':`<button class="outline-button full" data-action="replacement-choose" ${data.options.length?'':'disabled'}>이 메뉴만 다른 가게 상품으로 바꾸기</button>`}<button class="outline-button full" data-action="replacement-restart">처음부터 다시 고르기</button>${!data.options.length&&data.kept?.available?'<p class="replacement-notice">현재 조건에 맞는 가까운 대체 메뉴가 없어요.</p>':''}`);
+  });
+}
+
+function showReplacementPicker(){
+  if(!replacementData)return;
+  const options=replacementData.options,selected=options.find(item=>item.id===replacementSelectedId)||options[0];
+  if(!selected)return;
+  const discount=Math.max(0,Math.round((1-selected.total/selected.originalTotal)*100));
+  overlay('대체 메뉴 선택',`<p class="replacement-location">⌖ 가까운 가게의 유사 메뉴를 추천해드려요!</p><div class="replacement-options" role="radiogroup" aria-label="대체 메뉴">${options.map(item=>`<button class="replacement-option ${item.id===selected.id?'selected':''}" role="radio" aria-checked="${item.id===selected.id}" data-action="replacement-select" data-id="${item.id}"><img src="${setProductImage(item)}" alt="${esc(item.name)} 사진"><span><strong>${esc(item.name)}</strong><small>${esc(item.shopName)} · 픽업 마감 ${deadlineText(item.closingAt)}</small><b>${won(item.price)}</b></span><i aria-hidden="true"></i></button>`).join('')}</div>${replacementData.kept?`<p class="replacement-kept">함께 예약할 메뉴 · ${esc(replacementData.kept.name)}</p>`:''}<div class="replacement-total"><span>교체 후 현장 결제 합계</span><strong>${won(selected.total)}</strong><small>${discount}% 할인</small></div><p class="replacement-notice">적용하면 새 예약 요청을 보냅니다. 각 가게가 다시 확인한 뒤 확정돼요.</p><button class="primary full" data-action="replacement-apply">적용하기</button><button class="outline-button full" data-action="replacement-back">뒤로</button>`);
+}
+
 orderCard=function(order){
   const status=order.reservationStatus||order.status;
-  return `<article class="order-card"><div class="order-top"><strong>주문 #${orderNumber(order)}</strong><span>${status==='sold_out'?'재고 부족으로 종료':reservationLabel(status)}</span></div>${order.recommendationReason?`<p>${esc(order.recommendationReason)}</p>`:''}<p class="reservation-order-time">요청 ${deadlineText(order.requestedAt)}${order.confirmedAt?` · 확정 ${deadlineText(order.confirmedAt)}`:''}</p>${order.stops.map(stop=>`<div class="reservation-shop-status"><strong>${esc(stop.name)}</strong><span>${customerResponseLabel(stop)}</span><small>${stop.items.map(esc).join(' · ')} · 현장 결제 ${won(shopOrderTotal(order,stop.id))}</small><small>픽업 기한 ${stop.pickupDeadlineAt?deadlineText(stop.pickupDeadlineAt):stop.pickup} · ${customerReceiptLabel(stop)}</small></div>`).join('')}<div class="order-price-total"><span>현장 결제 합계</span><strong>${won(order.total)}</strong></div>${status==='waiting'?`<div class="owner-eta"><span>가게 응답까지</span>${requestTimer(order.responseDeadlineAt)}</div>`:''}${['confirmed','completed','no_show'].includes(status)?`<button class="outline-button full" data-action="route" data-id="${order.id}">픽업 순서 보기</button>`:''}<button class="delete-order-button" data-action="delete-order" data-id="${order.id}">내역 삭제</button></article>`;
+  return `<article class="order-card"><div class="order-top"><strong>주문 #${orderNumber(order)}</strong><span>${status==='sold_out'?'재고 부족으로 종료':reservationLabel(status)}</span></div>${order.recommendationReason?`<p>${esc(order.recommendationReason)}</p>`:''}<p class="reservation-order-time">요청 ${deadlineText(order.requestedAt)}${order.confirmedAt?` · 확정 ${deadlineText(order.confirmedAt)}`:''}</p>${order.stops.map(stop=>`<div class="reservation-shop-status"><strong>${esc(stop.name)}</strong><span>${customerResponseLabel(stop)}</span><small>${stop.items.map(esc).join(' · ')} · 현장 결제 ${won(shopOrderTotal(order,stop.id))}</small><small>픽업 기한 ${stop.pickupDeadlineAt?deadlineText(stop.pickupDeadlineAt):stop.pickup} · ${customerReceiptLabel(stop)}</small></div>`).join('')}<div class="order-price-total"><span>현장 결제 합계</span><strong>${won(order.total)}</strong></div>${status==='waiting'?'<p class="reservation-waiting-message">가게의 응답을 기다리고 있어요.</p>':''}${status==='sold_out'&&!order.replacementOrderId?`<button class="primary full replacement-start" data-action="replacement-open" data-id="${order.id}">다른 메뉴 추천받기</button>`:''}${order.replacementOrderId?'<p class="replacement-notice">대체 예약을 새로 요청했어요.</p>':''}${['confirmed','completed','no_show'].includes(status)?`<button class="outline-button full" data-action="route" data-id="${order.id}">픽업 순서 보기</button>`:''}<button class="delete-order-button" data-action="delete-order" data-id="${order.id}">내역 삭제</button></article>`;
 };
 
 ordersPage=function(){
@@ -141,8 +159,19 @@ async function requestReservation(productIds,recommendationId,useVoucher,voucher
 document.addEventListener('click',event=>{
   const button=event.target.closest('[data-action]');if(!button)return;
   const action=button.dataset.action;
-  if(!['product-detail','reserve-product','reserve-set','set-list','set-detail','reservation-response','product-status'].includes(action))return;
+  if(!['product-detail','reserve-product','reserve-set','set-list','set-detail','reservation-response','product-status','replacement-open','replacement-choose','replacement-select','replacement-apply','replacement-restart','replacement-back'].includes(action))return;
   event.preventDefault();event.stopImmediatePropagation();
+  if(action==='replacement-open')return void openReplacement(button.dataset.id);
+  if(action==='replacement-choose')return showReplacementPicker();
+  if(action==='replacement-select'){replacementSelectedId=Number(button.dataset.id);showReplacementPicker();return;}
+  if(action==='replacement-back')return void openReplacement(replacementData?.orderId);
+  if(action==='replacement-restart'){close();state.tab='feed';render();scrollTo(0,0);return;}
+  if(action==='replacement-apply')return void withServer(async()=>{
+    if(!replacementData||!replacementSelectedId)return;
+    button.disabled=true;
+    await api('replacement-apply',{orderId:Number(replacementData.orderId),productId:replacementSelectedId});
+    replacementData=null;replacementSelectedId=null;close();state.tab='orders';await refreshServerData();toast('대체 메뉴로 새 예약을 요청했어요.');
+  });
   if(action==='product-detail')return productDetail(button.dataset.id);
   if(action==='set-list')return showAiResult();
   if(action==='set-detail')return showSetDetail(button.dataset.id);
