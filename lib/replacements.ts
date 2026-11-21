@@ -66,7 +66,7 @@ export async function applyReplacement(db: D1Database, userId: string, orderId: 
   const voucherCode = original.use_voucher ? "seongdong" : null;
   if (productIds.length === 2) {
     recommendationId = crypto.randomUUID();
-    const reason = `${selection.soldOut?.name || "품절 메뉴"} 대신 가까운 가게의 ${option.name}을 추천해요.`;
+    const reason = `${selection.soldOut?.name || "품절 메뉴"} 대신 가까운 가게의 ${option.name} 메뉴를 추천해요.`;
     await db.prepare("INSERT INTO recommendations (id,customer_user_id,product_ids,items_json,voucher_code,reason,created_at,expires_at) VALUES (?,?,?,?,?,?,?,?)")
       .bind(recommendationId, userId, JSON.stringify(productIds.map(String)), JSON.stringify(productIds.map(id => ({ productId: String(id), quantity: 1 }))), voucherCode, reason, timestamp, timestamp + 10 * 60_000).run();
   }
