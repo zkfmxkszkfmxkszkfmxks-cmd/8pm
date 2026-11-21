@@ -166,7 +166,7 @@ document.addEventListener('click',event=>{
 function updateReservationTimers(){
   document.querySelectorAll('.reservation-timer').forEach(timer=>{
     const remaining=Math.max(0,Number(timer.dataset.deadline)-Date.now());
-    const seconds=Math.ceil(remaining/1000);
+    const seconds=Math.min(300,Math.ceil(remaining/1000));
     timer.textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
     timer.closest('.owner-order-card')?.querySelectorAll('[data-action="reservation-response"]').forEach(button=>{if(remaining===0)button.disabled=true;});
   });
