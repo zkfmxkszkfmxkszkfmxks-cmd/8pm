@@ -48,6 +48,7 @@
 .set-detail-head{margin:12px 0}
 .reservation-order-time{font-size:.76rem;color:#667b75}
 .reservation-waiting-message{margin:13px 0;padding:12px 14px;border-radius:12px;background:#eaf8f5;color:#147c73;font-size:.84rem;font-weight:800}
+.waiting-route-button{margin-top:10px}
 .replacement-start{margin:14px 0 0}
 .replacement-alert-icon{display:grid;place-items:center;width:54px;height:54px;margin:12px auto 18px;border:2px solid #e29b72;border-radius:50%;color:#b96035;font-size:1.9rem;font-weight:900}
 .replacement-alert-title,.replacement-alert-copy{text-align:center}

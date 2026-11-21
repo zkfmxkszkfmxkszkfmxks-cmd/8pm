@@ -143,6 +143,24 @@ ordersPage=function(){
   return `${heading('MY ALLEY','내 주문','가게별 응답과 수령 상태를 확인하세요.')}${visible.length?'<div class="order-bulk-actions"><button data-action="delete-all-orders" data-value="customer">전체 삭제</button></div>':''}${section('응답 대기',pending)}${section('픽업 확정',confirmed)}${section('완료',done)}`;
 };
 
+const reservationOrderCard=orderCard;
+orderCard=function(order){
+  const html=reservationOrderCard(order);
+  if((order.reservationStatus||order.status)!=='waiting')return html;
+  return html.replace('<button class="delete-order-button"',`<button class="outline-button full waiting-route-button" data-action="route" data-id="${order.id}">응답 전 동선 보기</button><button class="delete-order-button"`);
+};
+
+const confirmedRoute=route;
+route=function(id){
+  confirmedRoute(id);
+  const order=state.orders.find(item=>item.id===Number(id));
+  if(!order)return;
+  const title=document.querySelector('#overlay #sheet-title');
+  if(title)title.textContent=(order.reservationStatus||order.status)==='waiting'?'응답 전 픽업 동선':'픽업 동선과 예상 시간';
+  const intro=document.querySelector('#overlay .sheet .muted');
+  if(intro)intro.textContent='추천 방문 순서와 예상 시간입니다. 최대 5분의 가게 응답 대기를 포함하며 실제 방문 경로는 다를 수 있어요.';
+};
+
 async function requestReservation(productIds,recommendationId,useVoucher,voucherCode=null){
   await withServer(async()=>{
     const result=await api('reservation-create',{productIds,recommendationId,useVoucher,voucherCode,origin:feedLocation()});
