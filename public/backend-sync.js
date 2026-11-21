@@ -64,7 +64,7 @@ function showLogin(){
   let gate=document.querySelector('#login-gate');
   if(!gate){
     gate=document.createElement('div');gate.id='login-gate';
-    gate.innerHTML='<main class="login-card"><div class="login-logo"><span>ㅎ</span> 마감한끼</div><h1>골목의 한 끼를 만나보세요</h1><p>이용할 계정을 선택하고 로그인해 주세요.</p><form id="demo-login-form"><fieldset><legend>이용 방식 선택</legend><label class="login-role"><input type="radio" name="role" value="customer" required><span><strong>고객</strong><small>오늘의 메뉴를 찾고 주문하기</small></span></label><label class="login-role"><input type="radio" name="role" value="owner" required><span><strong>점주</strong><small>메뉴를 등록하고 주문 관리하기</small></span></label></fieldset><label class="login-field">아이디<input name="username" type="text" inputmode="numeric" autocomplete="username" required placeholder="아이디 입력"></label><label class="login-field">비밀번호<input name="password" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="비밀번호 입력"></label><p id="login-error" role="alert" aria-live="polite"></p><button class="login-submit" type="submit">로그인</button></form><p class="login-hint">시연용 계정 · 아이디 1 / 비밀번호 1<br>고객과 점주 중 하나를 선택해 주세요.</p></main>';
+    gate.innerHTML='<main class="login-card"><div class="login-logo"><span>ㅎ</span> 마감한끼</div><h1>골목의 한 끼를 만나보세요</h1><p>체험할 화면을 선택해 주세요.</p><div class="experience-choices"><button class="experience-choice" type="button" data-action="demo-experience" data-value="customer"><strong>고객으로 체험</strong><small>오늘의 메뉴를 찾고 예약 요청하기</small></button><button class="experience-choice" type="button" data-action="demo-experience" data-value="owner"><strong>점주로 체험</strong><small>메뉴를 등록하고 예약 요청 관리하기</small></button></div><p id="login-error" role="alert" aria-live="polite"></p><p class="login-hint">가상 가게와 상품으로 기능을 체험할 수 있어요.</p></main>';
     document.body.append(gate);
   }
   gate.hidden=false;document.body.classList.add('login-open');
@@ -74,7 +74,7 @@ function showShopPicker(){
   let gate=document.querySelector('#shop-picker');
   if(!gate){
     gate=document.createElement('div');gate.id='shop-picker';
-    gate.innerHTML='<main class="shop-picker-card"><div class="login-logo"><span>ㅎ</span> 마감한끼</div><h1>내 가게를 선택해 주세요</h1><p>가게를 선택하면 해당 가게의 피드·주문·메뉴 관리를 볼 수 있어요.</p><label class="shop-picker-search">가게 검색<input id="owner-shop-search" type="search" placeholder="가게 이름 또는 지역 검색"></label><div id="owner-shop-list" class="owner-shop-list"></div><p class="shop-picker-note">시연용 가상 가게 목록입니다.</p><button class="shop-picker-logout" data-action="demo-logout" type="button">다른 계정으로 로그인</button></main>';
+    gate.innerHTML='<main class="shop-picker-card"><div class="login-logo"><span>ㅎ</span> 마감한끼</div><h1>내 가게를 선택해 주세요</h1><p>가게를 선택하면 해당 가게의 피드·주문·메뉴 관리를 볼 수 있어요.</p><label class="shop-picker-search">가게 검색<input id="owner-shop-search" type="search" placeholder="가게 이름 또는 지역 검색"></label><div id="owner-shop-list" class="owner-shop-list"></div><p class="shop-picker-note">시연용 가상 가게 목록입니다.</p><button class="shop-picker-logout" data-action="demo-logout" type="button">다른 방식으로 체험</button></main>';
     document.body.append(gate);
   }
   gate.hidden=false;document.body.classList.add('shop-picker-open');renderShopPickerList();
@@ -197,19 +197,20 @@ document.addEventListener('submit',event=>{
     close();await refreshServerData();toast('메뉴 정보를 저장했어요.');
   });
 },true);
-document.addEventListener('submit',event=>{
-  if(event.target.id!=='demo-login-form')return;
+document.addEventListener('click',event=>{
+  const button=event.target.closest('[data-action="demo-experience"]');if(!button)return;
   event.preventDefault();
-  const form=event.target,button=form.querySelector('button[type="submit"]'),error=form.querySelector('#login-error'),fields=new FormData(form);
-  error.textContent='';button.disabled=true;button.textContent='확인 중...';
+  const role=button.dataset.value,error=document.querySelector('#login-error');
+  if(!['customer','owner'].includes(role))return;
+  error.textContent='';document.querySelectorAll('.experience-choice').forEach(choice=>choice.disabled=true);
   void (async()=>{
     try{
-      const response=await fetch('/api/demo-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',role:fields.get('role'),username:fields.get('username'),password:fields.get('password')})});
-      if(!response.ok){error.textContent='계정 유형, 아이디와 비밀번호를 확인해 주세요.';return;}
+      const response=await fetch('/api/demo-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'experience',role})});
+      if(!response.ok){error.textContent='체험을 시작하지 못했어요. 다시 시도해 주세요.';return;}
       ownerShopId=null;sessionStorage.removeItem('owner-shop-id');state.tab='feed';
       await refreshServerData();scrollTo(0,0);
-    }catch{error.textContent='로그인에 실패했습니다. 다시 시도해 주세요.';}
-    finally{button.disabled=false;button.textContent='로그인';}
+    }catch{error.textContent='체험을 시작하지 못했어요. 다시 시도해 주세요.';}
+    finally{document.querySelectorAll('.experience-choice').forEach(choice=>choice.disabled=false);}
   })();
 });
 document.addEventListener('input',event=>{if(event.target.id==='owner-shop-search')renderShopPickerList()});
