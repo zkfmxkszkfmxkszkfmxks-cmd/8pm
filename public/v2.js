@@ -93,7 +93,8 @@ function profilePage(){const values=profileValues();return `${heading('MY ALLEY'
 function headerLocation(){return state.mode==='owner'?'':locationNote()}
 function locationNote(){
  const areas=[...new Map(shops.map(s=>[s.area,s])).values()];
- return `<div class="header-location"><label class="header-area-select"><span>지역 보기</span><select id="area-select" aria-label="서울 지역 선택"><option value="" ${!state.area?'selected':''}>내 주변 3km</option><option value="all" ${state.area==='all'?'selected':''}>서울 전체</option>${areas.map(s=>`<option value="${s.id}" ${state.area===s.id?'selected':''}>${esc(s.area)}</option>`).join('')}</select></label><button class="header-locate" data-action="locate" type="button" aria-label="내 위치 사용" title="내 위치 사용"><span aria-hidden="true">⌖</span><span class="header-locate-text">내 위치</span></button></div>`
+ const currentArea=state.locationStatus==='live'?(state.locationName||'현재 위치'):'성수동';
+ return `<div class="header-location"><label class="header-area-select"><span class="header-area-arrow" aria-hidden="true"></span><select id="area-select" aria-label="서울 지역 선택"><option value="" ${!state.area?'selected':''}>${esc(currentArea)}</option><option value="all" ${state.area==='all'?'selected':''}>서울 전체</option>${areas.map(s=>`<option value="${s.id}" ${state.area===s.id?'selected':''}>${esc(s.area)}</option>`).join('')}</select></label><button class="header-locate" data-action="locate" type="button" aria-label="내 위치 사용" title="내 위치 사용"><span aria-hidden="true">⌖</span><span class="header-locate-text">내 위치</span></button></div>`
 }
 const feedLocation=()=>state.locationStatus==='live'&&state.location?state.location:home;
 function visibleFeed(){const origin=feedLocation(),owner=state.mode==='owner';const menus=owner?[...new Map([...nearbyMenus(),...active().filter(m=>m.shop===OWNER_SHOP_ID)].map(m=>[m.id,m])).values()]:nearbyMenus();return menus.filter(m=>!storyFilter||m.shop===storyFilter).filter(m=>(m.name+' '+m.desc+' '+shop(m.shop).name).toLocaleLowerCase().includes(feedQuery.toLocaleLowerCase())).sort((a,b)=>(owner?(a.shop===OWNER_SHOP_ID?-1:0)-(b.shop===OWNER_SHOP_ID?-1:0):0)||distance(origin,shop(a.shop))-distance(origin,shop(b.shop))||(b.publishedAt||0)-(a.publishedAt||0)||a.id-b.id)}
@@ -194,7 +195,27 @@ function dictate(){
   session.onend=()=>{if(recognition!==session)return;recognition=null;dictationState='ended';updateDictationUi(failed?'음성 인식이 중단됐어요. 다시 입력할 수 있습니다.':'인식된 내용을 확인하고 초안을 만들어 주세요.')};
   try{session.start();dictationState='listening';updateDictationUi()}catch{recognition=null;dictationState='ended';updateDictationUi('마이크를 시작할 수 없습니다. 다시 입력해 주세요.');toast('마이크를 시작할 수 없습니다. 직접 입력해 주세요.')}
 }
-function locate(){if(!navigator.geolocation){toast('이 브라우저는 위치 기능을 지원하지 않습니다.');return}navigator.geolocation.getCurrentPosition(p=>{state.location={lat:p.coords.latitude,lng:p.coords.longitude};state.locationStatus='live';state.area='';storyFilter='';persist();render();toast('현재 위치에서 3km 이내 메뉴를 표시합니다.')},()=>toast('위치를 사용할 수 없어 성수역 기본 위치를 유지합니다.'),{enableHighAccuracy:false,timeout:10000,maximumAge:300000})}
+function resolveLocationName(position){
+  const geocode=()=>{
+    if(!window.kakao?.maps?.services?.Geocoder)return;
+    try{new kakao.maps.services.Geocoder().coord2RegionCode(position.lng,position.lat,(regions,status)=>{
+      if(status!==kakao.maps.services.Status.OK)return;
+      const region=regions.find(item=>item.region_type==='H')||regions[0];
+      const name=region?.region_3depth_name||region?.region_2depth_name;
+      if(name&&state.locationStatus==='live'&&state.location?.lat===position.lat&&state.location?.lng===position.lng){state.locationName=name;persist();render()}
+    })}catch{}
+  };
+  if(window.kakao?.maps?.load)kakao.maps.load(geocode);
+}
+function locate(){
+  if(!navigator.geolocation){toast('이 브라우저는 위치 기능을 지원하지 않습니다.');return}
+  navigator.geolocation.getCurrentPosition(p=>{
+    state.location={lat:p.coords.latitude,lng:p.coords.longitude};
+    state.locationStatus='live';state.locationName='현재 위치';state.area='';storyFilter='';
+    persist();render();resolveLocationName(state.location);
+    toast('현재 위치에서 3km 이내 메뉴를 표시합니다.');
+  },()=>toast('위치를 사용할 수 없어 성수동 기본 위치를 유지합니다.'),{enableHighAccuracy:false,timeout:10000,maximumAge:300000})
+}
 function setSettingsOpen(open){settingsOpen=open;const panel=$('#settings-panel'),button=$('[data-action="settings"]');if(panel)panel.hidden=!open;if(button)button.setAttribute('aria-expanded',String(open))}
 function updateStoryArrows(){const rail=$('.stories');if(!rail)return;const prev=$('.stories-prev'),next=$('.stories-next');if(prev)prev.disabled=rail.scrollLeft<=2;if(next)next.disabled=rail.scrollLeft+rail.clientWidth>=rail.scrollWidth-2}
 document.addEventListener('click',e=>{const arrow=e.target.closest('[data-action="stories-next"],[data-action="stories-prev"]');if(arrow){$('.stories')?.scrollBy({left:arrow.dataset.action==='stories-next'?300:-300,behavior:'smooth'});setTimeout(updateStoryArrows,350)}},true);

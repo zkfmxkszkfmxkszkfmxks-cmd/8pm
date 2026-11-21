@@ -133,6 +133,11 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--warm-red); }
 .header-locate [aria-hidden] { font-size: 1.15rem; line-height: 1; }
 @media (max-width: 700px) { .header-area-select > span, .header-locate-text { display: none; } .header-locate { width: 28px; justify-content: center; } }
 @media (max-width: 380px) { .header-brand-row { gap: 5px; } .header-location { gap: 3px; } .brand-logo-mark { width: 32px; height: 32px; } .header-area-select select { width: 108px; padding-inline: 3px; } .header-locate { width: 24px; padding-inline: 0; } }
+.header-area-select { gap: 7px; }
+.header-area-arrow { width: 8px; height: 8px; flex: none; border-right: 2px solid var(--warm-brown); border-bottom: 2px solid var(--warm-brown); transform: rotate(45deg) translateY(-2px); pointer-events: none; }
+.header-area-select select { appearance: none; width: 95px; max-width: 140px; height: 36px; padding: 4px 0; border: 0; border-radius: 0; background: transparent; color: #61372d; field-sizing: content; }
+.header-area-select select:focus-visible { outline: 2px solid var(--warm-red); outline-offset: 3px; border-radius: 3px; }
+@media (max-width: 380px) { .header-area-select select { width: 82px; max-width: 105px; } }
 .login-card>p, .shop-picker-card>p, .login-card .login-hint { color: #806c63; }
 .experience-choice { border-color: #e4c8ba; background: #fff8f3; color: #51372f; }
 .experience-choice:hover, .owner-shop-choice:hover, .owner-shop-choice:focus-visible { border-color: #b55b49; background: #fae9e0; }
