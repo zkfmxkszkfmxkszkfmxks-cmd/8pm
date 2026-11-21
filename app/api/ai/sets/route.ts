@@ -18,6 +18,26 @@ function validOrigin(origin: Origin) {
 }
 const voucherEligible = (product: Row) => Boolean(product.accepts_voucher) && product.area === "성수동";
 
+function fallbackProposals(candidates: Row[], prompt: string) {
+  const coffeeExcluded = /커피.{0,6}(빼|제외|없이)|카페인.{0,6}(빼|제외|없이)/.test(prompt);
+  const kind = (product: Row) => /커피|라테|콜드브루|주스|음료/.test(product.name) ? "drink"
+    : /스콘|크루아상|휘낭시에|소금빵|디저트/.test(product.name) ? "dessert" : "meal";
+  const pairs: Array<{ products: Row[]; score: number; reason: string }> = [];
+  for (let i = 0; i < candidates.length; i++) for (let j = i + 1; j < candidates.length; j++) {
+    const first = candidates[i], second = candidates[j];
+    if (first.shop_id === second.shop_id || (coffeeExcluded && [first, second].some(p => /커피|라테|콜드브루/.test(p.name)))) continue;
+    const types = [kind(first), kind(second)];
+    const score = (types.includes("meal") && types.includes("drink") ? 20 : types.includes("meal") && types.includes("dessert") ? 12 : types[0] !== types[1] ? 8 : 0)
+      + (/샌드위치/.test(first.name + second.name) && /커피|라테|콜드브루/.test(first.name + second.name) ? 10 : 0)
+      - distanceKm({ lat: Number(first.lat), lng: Number(first.lng) }, { lat: Number(second.lat), lng: Number(second.lng) }) * 10;
+    const reason = types.includes("meal") && types.includes("drink") ? "든든한 식사에 시원한 음료를 곁들이기 좋은 조합이에요."
+      : types.includes("meal") && types.includes("dessert") ? "식사 뒤 달콤한 디저트까지 즐길 수 있어요."
+      : "서로 다른 두 가게의 메뉴를 함께 즐기기 좋은 조합이에요.";
+    pairs.push({ products: [first, second], score, reason });
+  }
+  return pairs.sort((a, b) => b.score - a.score).slice(0, 40);
+}
+
 function presentSet(id: string, reason: string, products: Row[], origin: Origin, timestamp: number, voucherCode: string | null) {
   if (products.length !== 2 || products[0].shop_id === products[1].shop_id || products.some(p => !availableProduct(p, timestamp))) return null;
   if (products.some(p => distanceKm(origin, { lat: Number(p.lat), lng: Number(p.lng) }) > 3)) return null;
@@ -78,22 +98,32 @@ export async function POST(request: Request) {
     const candidates = rows.results.filter(p => availableProduct(p, timestamp) && distanceKm(origin, { lat: Number(p.lat), lng: Number(p.lng) }) <= 3 && (!voucherCode || voucherEligible(p))).slice(0, 60);
     if (new Set(candidates.map(p => p.shop_id)).size < 2) return json({ sets: [], message: "eligible_products_missing" });
     const runtimeEnv = env as unknown as { OPENAI_API_KEY?: string; OPENAI_MODEL?: string };
-    if (!runtimeEnv.OPENAI_API_KEY) throw new ApiError(503, "api_key_not_configured");
     const catalog = candidates.map(p => ({ id: String(p.id), name: p.name, category: p.category || "음식", description: p.description, shop: p.shop_name }));
-    const response = await fetch("https://api.openai.com/v1/responses", { method: "POST",
+    let parsed: { budget: number | null; sets: Array<{ productIds: string[]; reason: string }> } = { budget: null, sets: [] };
+    try {
+      if (!runtimeEnv.OPENAI_API_KEY) throw new Error("api_key_not_configured");
+      const response = await fetch("https://api.openai.com/v1/responses", { method: "POST",
       headers: { Authorization: `Bearer ${runtimeEnv.OPENAI_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({ model: runtimeEnv.OPENAI_MODEL || "gpt-4o-mini", store: false, max_output_tokens: 800,
         input: [{ role: "system", content: "고객 요청에 맞춰 함께 먹기 좋은 두 상품 조합을 최대 3개 제안하세요. 제공된 상품 ID만 사용하고 반드시 서로 다른 가게의 상품 두 개를 고르세요. 맛의 조화와 고객 조건을 근거로 각 조합의 이유를 한국어 한 문장으로 쓰세요. 상품이나 가게를 만들어내지 마세요. budget은 고객이 명시한 총 예산(원)만 숫자로, 없으면 null로 반환하세요." },
           { role: "user", content: JSON.stringify({ request: prompt, catalog }) }],
         text: { format: { type: "json_schema", name: "menu_sets", strict: true, schema } } }), signal: AbortSignal.timeout(20_000) });
-    if (!response.ok) throw new ApiError(502, "ai_service_unavailable");
-    const data = await response.json() as { status?: string; output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }> };
-    const output = data.output?.flatMap(item => item.type === "message" ? item.content || [] : []).find(part => part.type === "output_text")?.text;
-    if (data.status !== "completed" || !output) throw new ApiError(502, "ai_response_incomplete");
-    const parsed = JSON.parse(output) as { budget: number | null; sets: Array<{ productIds: string[]; reason: string }> };
+      if (!response.ok) {
+        const problem = await response.json().catch(() => null) as { error?: { code?: string; type?: string } } | null;
+        console.error("OpenAI set recommendation failed", { status: response.status, code: problem?.error?.code, type: problem?.error?.type });
+        throw new Error("ai_service_unavailable");
+      }
+      const data = await response.json() as { status?: string; output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string }> }> };
+      const output = data.output?.flatMap(item => item.type === "message" ? item.content || [] : []).find(part => part.type === "output_text")?.text;
+      if (data.status !== "completed" || !output) throw new Error("ai_response_incomplete");
+      parsed = JSON.parse(output);
+    } catch (error) {
+      console.error("Using catalog-based set recommendation", { cause: error instanceof Error ? error.message : "unknown" });
+    }
     const allowed = new Map(candidates.map(p => [String(p.id), p]));
     const seen = new Set<string>(), sets = [];
-    for (const proposal of parsed.sets || []) {
+    const proposals = (parsed.sets || []).concat(fallbackProposals(candidates, prompt).map(pair => ({ productIds: pair.products.map(p => String(p.id)), reason: pair.reason })));
+    for (const proposal of proposals) {
       if (!Array.isArray(proposal.productIds) || proposal.productIds.length !== 2) continue;
       const ids = proposal.productIds.map(String), key = [...ids].sort().join(":");
       const products = ids.map(id => allowed.get(id)).filter(Boolean) as Row[];
