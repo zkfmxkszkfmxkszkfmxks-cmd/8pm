@@ -121,6 +121,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--warm-red); }
 .shop-picker-card .login-brand-image { width: 104px; height: 104px; }
 .brand-logo-mark { display: block; width: 44px; height: 44px; object-fit: contain; flex: none; }
 @media (max-width: 600px) { .brand-logo-mark { width: 38px; height: 38px; } }
+.login-card h1:first-child { margin-top: 0; }
 .login-card>p, .shop-picker-card>p, .login-card .login-hint { color: #806c63; }
 .experience-choice { border-color: #e4c8ba; background: #fff8f3; color: #51372f; }
 .experience-choice:hover, .owner-shop-choice:hover, .owner-shop-choice:focus-visible { border-color: #b55b49; background: #fae9e0; }
