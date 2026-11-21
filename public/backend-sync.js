@@ -64,7 +64,7 @@ function showLogin(){
   let gate=document.querySelector('#login-gate');
   if(!gate){
     gate=document.createElement('div');gate.id='login-gate';
-    gate.innerHTML='<main class="login-card"><div class="login-logo"><span>ㅎ</span> 마감한끼</div><h1>골목의 한 끼를 만나보세요</h1><p>체험할 화면을 선택해 주세요.</p><div class="experience-choices"><button class="experience-choice" type="button" data-action="demo-experience" data-value="customer"><strong>고객으로 체험</strong><small>오늘의 메뉴를 찾고 예약 요청하기</small></button><button class="experience-choice" type="button" data-action="demo-experience" data-value="owner"><strong>점주로 체험</strong><small>메뉴를 등록하고 예약 요청 관리하기</small></button></div><p id="login-error" role="alert" aria-live="polite"></p><p class="login-hint">가상 가게와 상품으로 기능을 체험할 수 있어요.</p></main>';
+    gate.innerHTML='<main class="login-card"><div class="login-logo"><img class="login-brand-image" src="assets/magam-hankki-logo.png" alt="마감한끼"></div><h1>골목의 한 끼를 만나보세요</h1><p>체험할 화면을 선택해 주세요.</p><div class="experience-choices"><button class="experience-choice" type="button" data-action="demo-experience" data-value="customer"><strong>고객으로 체험</strong><small>오늘의 메뉴를 찾고 예약 요청하기</small></button><button class="experience-choice" type="button" data-action="demo-experience" data-value="owner"><strong>점주로 체험</strong><small>메뉴를 등록하고 예약 요청 관리하기</small></button></div><p id="login-error" role="alert" aria-live="polite"></p><p class="login-hint">가상 가게와 상품으로 기능을 체험할 수 있어요.</p></main>';
     document.body.append(gate);
   }
   gate.hidden=false;document.body.classList.add('login-open');
@@ -74,7 +74,7 @@ function showShopPicker(){
   let gate=document.querySelector('#shop-picker');
   if(!gate){
     gate=document.createElement('div');gate.id='shop-picker';
-    gate.innerHTML='<main class="shop-picker-card"><div class="login-logo"><span>ㅎ</span> 마감한끼</div><h1>내 가게를 선택해 주세요</h1><p>가게를 선택하면 해당 가게의 화면·주문·메뉴 관리를 볼 수 있어요.</p><label class="shop-picker-search">가게 검색<input id="owner-shop-search" type="search" placeholder="가게 이름 또는 지역 검색"></label><div id="owner-shop-list" class="owner-shop-list"></div><p class="shop-picker-note">시연용 가상 가게 목록입니다.</p><button class="shop-picker-logout" data-action="demo-logout" type="button">다른 방식으로 체험</button></main>';
+    gate.innerHTML='<main class="shop-picker-card"><div class="login-logo"><img class="login-brand-image" src="assets/magam-hankki-logo.png" alt="마감한끼"></div><h1>내 가게를 선택해 주세요</h1><p>가게를 선택하면 해당 가게의 화면·주문·메뉴 관리를 볼 수 있어요.</p><label class="shop-picker-search">가게 검색<input id="owner-shop-search" type="search" placeholder="가게 이름 또는 지역 검색"></label><div id="owner-shop-list" class="owner-shop-list"></div><p class="shop-picker-note">시연용 가상 가게 목록입니다.</p><button class="shop-picker-logout" data-action="demo-logout" type="button">다른 방식으로 체험</button></main>';
     document.body.append(gate);
   }
   gate.hidden=false;document.body.classList.add('shop-picker-open');renderShopPickerList();
