@@ -70,12 +70,12 @@ function say(t){if(!window.speechSynthesis){toast('이 브라우저는 음성 �
 function pageSpeech(){
  const titles={feed:'피드',map:'지도',orders:'내 주문',register:'등록',ownerOrders:'주문',manage:'관리'};
  const parts=[titles[state.tab]+' 화면입니다.'];
- if(state.tab==='feed'){const items=visibleFeed();parts.push((state.area==='all'?'서울 전체 메뉴 ':'근처 메뉴 ')+items.length+'개.');parts.push(...items.slice(0,6).map(m=>shop(m.shop).name+'의 '+m.name+', '+won(m.price)+', 재고 '+m.stock+'개.'))}
+ if(state.tab==='feed'){const items=visibleFeed();parts.push((state.area==='all'?'서울 전체 메뉴 ':'근처 메뉴 ')+items.length+'개.');parts.push(...items.slice(0,6).map(m=>shop(m.shop).name+'의 '+m.name+', '+won(m.price)+', '+(m.status==='sold_out'?'품절':m.reservable?'예약 요청 가능':'마감')+'.'))}
  if(state.tab==='map'){const list=visibleMapShops();parts.push((state.area==='all'?'서울 전체 가게 ':'반경 3킬로미터 내 가게 ')+list.length+'곳.');parts.push(...list.map(s=>state.area==='all'?s.area+'의 '+s.name+'.':s.name+', 약 '+distance(center(),s).toFixed(1)+'킬로미터.'))}
  if(state.tab==='orders'){parts.push('진행 중인 주문 '+state.orders.filter(o=>!customerOrderDone(o)).length+'건, 완료 내역 '+state.orders.filter(customerOrderDone).length+'건.');parts.push(...state.orders.slice(0,3).map(o=>statusLabel(orderStatus(o))+' 주문, '+won(o.total)+', '+o.stops.length+'곳 픽업.'))}
- if(state.tab==='register')parts.push('먼저 사진을 촬영하거나 올리고, 상품의 이름, 가격, 재고량, 마감 시간을 말해 주세요. 초안을 확인한 다음 등록할 수 있습니다.');
+ if(state.tab==='register')parts.push('먼저 사진을 촬영하거나 올리고, 상품의 이름, 정가, 마감 시간을 말해 주세요. 초안을 확인한 다음 최저 판매가를 입력해 등록할 수 있습니다.');
  if(state.tab==='ownerOrders'){const list=ownerOrders();parts.push(shop(OWNER_SHOP_ID).name+' 진행 중인 주문 '+list.filter(o=>orderStatus(o)==='waiting').length+'건, 수락한 주문 '+list.filter(o=>['accepted','preparing','ready'].includes(orderStatus(o))).length+'건, 완료한 주문 '+list.filter(o=>orderStatus(o)==='completed').length+'건. 주문을 수락하고 준비한 뒤 픽업 완료로 처리할 수 있습니다.');}
- if(state.tab==='manage'){parts.push('오후의 빵집 오늘의 메뉴 '+ownerMenus().length+'개.');parts.push(...ownerMenus().slice(0,7).map(m=>m.name+', '+won(m.price)+', 재고 '+m.stock+'개.'))}
+ if(state.tab==='manage'){parts.push(shop(OWNER_SHOP_ID).name+' 오늘의 메뉴 '+ownerMenus().length+'개.');parts.push(...ownerMenus().slice(0,7).map(m=>m.name+', 현재 적용 판매가 '+won(m.price)+', '+(m.status==='sold_out'?'품절':m.reservable?'예약 요청 가능':'마감')+'.'))}
  say(parts.join(' '))
 }
 function render(){document.documentElement.style.setProperty('--scale',state.font);const owner=state.mode==='owner';const tabs=owner?[['feed','피드'],['register','등록'],['ownerOrders','주문'],['manage','관리']]:[['feed','피드'],['map','지도'],['orders','내 주문']];if(!tabs.some(([id])=>id===state.tab))state.tab='feed';const viewKey=state.mode+':'+state.tab,entering=viewKey!==lastViewKey;lastViewKey=viewKey;
@@ -150,7 +150,7 @@ async function aiRun(){
  showAiResult();
 }
 function showAiResult(){aiText=$('#ai-prompt')?.value.trim()||'';if(!aiText){toast('원하는 조건을 입력해 주세요.');return}aiResult=recommend(aiText);const setDiscount=aiResult.discount;overlay('골목 세트 추천',`<div class="recommend-summary"><strong>${aiResult.people}명 · 예산 ${won(aiResult.budget)}</strong><p>현재 위치에서 3km 이내, 가게끼리 1km 이내인 마감 메뉴 ${aiResult.items.length}가지를 골랐어요.</p></div>${aiResult.items.length?aiResult.items.map(x=>{const m=active().find(m=>m.id===x.id);return `<div class="mini-item"><span>${esc(m.name)} × ${x.qty}<small>${esc(shop(m.shop).name)} · ${distance(feedLocation(),shop(m.shop)).toFixed(1)}km</small></span><strong>${won(m.price*x.qty)}</strong></div>`}).join(''):'<p class="muted">가까운 가게에서 조건에 맞는 조합을 찾지 못했어요. 예산이나 조건을 바꿔 주세요.</p>'}<div class="cart-breakdown"><span>개별 할인가 합계</span><strong>${won(aiResult.total)}</strong></div>${aiResult.items.length?`<div class="cart-breakdown set-discount"><span>골목 응원 ${SET_DISCOUNT_RATE}% 할인</span><strong>−${won(setDiscount)}</strong></div><p class="alley-discount-note">동네 가게 메뉴를 함께 고르면 적용되는 할인입니다. 골목 상권에 한 걸음 더 가까워지는 선택이에요.</p>`:''}<div class="cart-total"><span>추천 조합 가격</span><strong>${won(aiResult.total-setDiscount)}</strong></div><button class="primary" data-action="ai-add" ${!aiResult.items.length?'disabled':''}>추천 메뉴 담기</button><button class="outline-button full" data-action="ai-open">조건 다시 입력</button><p class="demo-note">${aiUsed?'GPT가 요청 조건을 분석했습니다.':'GPT를 사용할 수 없어 규칙 기반으로 분석했습니다.'} 추천 메뉴는 표시된 재고와 거리·예산으로 계산합니다.</p>`)}
-function extractDraft(t){const price=parseKoreanAmount(t),stock=Number(t.match(/(\d+)\s*(개|잔|인분|그릇)/)?.[1]||0);const h=t.match(/(?:오후\s*)?(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분)?/),closing=h?String((Number(h[1])<12&&/오후/.test(t)?Number(h[1])+12:Number(h[1]))).padStart(2,'0')+':'+String(Number(h[2]||0)).padStart(2,'0'):'18:00';let name=t.replace(/예약 취소로 남은|마감 전 남은|오늘 준비한 여분/g,'').replace(/\d[\d,]*\s*(?:만|천)?\s*원/g,'').replace(/\d+\s*(?:개|잔|인분|그릇)/g,'').replace(/(?:오후\s*)?\d{1,2}\s*시(?:\s*\d{1,2}\s*분)?/g,'').replace(/(남았고|남았어요|남음|마감해요|마감|오늘|이고|입니다|이에요|이요|에|합니다)/g,' ').replace(/[,.，。]/g,' ').replace(/\s+/g,' ').trim();return {name:name.slice(0,40),price:price||0,stock,closing,shop:OWNER_SHOP_ID,desc:'',surplusReason:/취소/.test(t)?SURPLUS_REASONS[1]:/마감/.test(t)?SURPLUS_REASONS[2]:SURPLUS_REASONS[0]}}
+function extractDraft(t){const price=parseKoreanAmount(t);const h=t.match(/(?:오후\s*)?(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분)?/),closing=h?String((Number(h[1])<12&&/오후/.test(t)?Number(h[1])+12:Number(h[1]))).padStart(2,'0')+':'+String(Number(h[2]||0)).padStart(2,'0'):'18:00';let name=t.replace(/예약 취소로 남은|마감 전 남은|오늘 준비한 여분/g,'').replace(/\d[\d,]*\s*(?:만|천)?\s*원/g,'').replace(/\d+\s*(?:개|잔|인분|그릇)/g,'').replace(/(?:오후\s*)?\d{1,2}\s*시(?:\s*\d{1,2}\s*분)?/g,'').replace(/(남았고|남았어요|남음|마감해요|마감|오늘|이고|입니다|이에요|이요|에|합니다)/g,' ').replace(/[,.，。]/g,' ').replace(/\s+/g,' ').trim();return {name:name.slice(0,40),price:price||0,closing,shop:OWNER_SHOP_ID,desc:'',surplusReason:/취소/.test(t)?SURPLUS_REASONS[1]:/마감/.test(t)?SURPLUS_REASONS[2]:SURPLUS_REASONS[0]}}
 async function makeDraft(){
  const text=$('#product-phrase')?.value.trim();
  if(!photo){toast('상품 사진을 먼저 선택해 주세요.');return}
@@ -161,7 +161,7 @@ async function makeDraft(){
  try{
   const data=await aiInterpret('product',text);
   const reasons={prepared_extra:SURPLUS_REASONS[0],reservation_cancelled:SURPLUS_REASONS[1],closing_leftover:SURPLUS_REASONS[2]};
-  productExtraction={name:data.name||'',price:data.price??'',stock:data.stock??'',closing:data.closing||'',desc:data.desc||'',surplusReason:reasons[data.surplusReason]||SURPLUS_REASONS[0]};
+  productExtraction={name:data.name||'',price:data.price??'',closing:data.closing||'',desc:data.desc||'',surplusReason:reasons[data.surplusReason]||SURPLUS_REASONS[0]};
  }catch{toast('GPT를 사용할 수 없어 기존 방식으로 초안을 만들어요.')}
  finally{if(button&&button.isConnected){button.disabled=false;button.textContent='등록 초안 만들기 →'}}
  showDraftFromInput();

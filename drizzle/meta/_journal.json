@@ -29,6 +29,13 @@
       "when": 1795186085912,
       "tag": "0003_amazing_sugar_man",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1795227240359,
+      "tag": "0004_lyrical_lethal_legion",
+      "breakpoints": true
     }
   ]
 }

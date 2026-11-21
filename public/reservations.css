@@ -1,0 +1,25 @@
+.product-image-button{display:block;width:100%;padding:0;text-align:left}
+.product-name-button{display:block;text-align:left;font-weight:800;font-size:.86rem;padding:0}
+.product-detail-price{margin:16px 0;font-size:1.1rem}
+.product-detail-price del{color:#7d8d88;font-size:.8rem}
+.reservation-availability{margin-top:14px;font-weight:800;color:#156e68}
+.voucher-filter{display:flex;align-items:center;gap:10px;margin:16px 0;font-size:.88rem;font-weight:700;line-height:1.4}
+.voucher-filter input{width:18px;height:18px;flex:none}
+.reservation-set{margin:16px 0;padding:18px;border:1px solid #cfe6e1;border-radius:16px;background:#fbfefd}
+.reservation-set h3{margin:0 0 8px;font-size:1rem}
+.reservation-set>p{font-size:.84rem;line-height:1.5;margin:8px 0}
+.reservation-set-item,.reservation-set-total{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #e2eeeb;font-size:.84rem}
+.reservation-set-item span{min-width:0}
+.reservation-set-item small{display:block;color:#667b75;font-size:.76rem;margin-top:3px}
+.reservation-set-total{font-weight:800;border:0}
+.reservation-set .primary{margin-top:12px}
+.reservation-actions{display:flex;align-items:center;gap:10px}
+.reservation-actions .primary{margin-top:12px;flex:1}
+.reservation-actions .outline-button{margin-top:12px;flex:1;padding:14px 18px}
+.reservation-timer{font-size:1.1rem;font-weight:900;letter-spacing:.04em;color:#b94c3e;font-variant-numeric:tabular-nums}
+.reservation-shop-status{display:grid;grid-template-columns:1fr auto;gap:4px 12px;border-top:1px solid #e2eeeb;padding:13px 0;font-size:.84rem}
+.reservation-shop-status span{font-weight:800;color:#156e68}
+.reservation-shop-status small{grid-column:1/-1;color:#667b75;font-size:.76rem}
+.main.ownerOrders .panel{margin-bottom:18px}
+.main.ownerOrders .panel .owner-order-card{margin-top:12px}
+@media(max-width:600px){.reservation-actions{flex-direction:column;align-items:stretch}.reservation-actions .primary,.reservation-actions .outline-button{width:100%;margin-top:8px}}

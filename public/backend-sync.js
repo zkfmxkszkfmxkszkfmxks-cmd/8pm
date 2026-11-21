@@ -185,7 +185,7 @@ document.addEventListener('submit',event=>{
   if(!backendSession.owner)return toast('점주 계정만 메뉴를 등록할 수 있어요.');
   void withServer(async()=>{
     const values=new FormData(form);
-    const payload={name:String(values.get('name')||'').trim(),originalPrice:Number(values.get('price')),stock:Number(values.get('stock')),closing:String(values.get('closing')||''),description:String(values.get('desc')||'').trim()||'마감 상품을 판매합니다'};
+    const payload={name:String(values.get('name')||'').trim(),originalPrice:Number(values.get('price')),minPrice:Number(values.get('minPrice')),closing:String(values.get('closing')||''),description:String(values.get('desc')||'').trim()||'마감 상품을 판매합니다'};
     if(form.id==='draft-form'){
       if(!photo)return toast('상품 사진을 선택해 주세요.');
       const blob=await(await fetch(photo)).blob(), upload=new FormData();upload.append('file',blob,'product.jpg');

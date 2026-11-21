@@ -31,21 +31,20 @@ export const products = sqliteTable("products", {
   description: text("description").notNull().default(""),
   originalPrice: integer("original_price").notNull(),
   price: integer("price").notNull(),
-  stock: integer("stock").notNull(),
-  initialStock: integer("initial_stock").notNull(),
+  minPrice: integer("min_price").notNull().default(0),
   image: text("image").notNull(),
   surplusReason: text("surplus_reason"),
   listingDate: text("listing_date").notNull(),
   closingLabel: text("closing_label").notNull().default("18:00"),
   closingAt: integer("closing_at").notNull(),
-  status: text("status", { enum: ["active", "hidden"] }).notNull().default("active"),
+  status: text("status", { enum: ["active", "sold_out", "hidden"] }).notNull().default("active"),
   sample: integer("sample", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at").notNull(),
   updatedAt: integer("updated_at").notNull(),
 }, (table) => [
   index("products_shop_date_idx").on(table.shopId, table.listingDate),
   index("products_listing_idx").on(table.listingDate, table.status),
-  check("products_nonnegative_stock", sql`${table.stock} >= 0`),
+  check("products_nonnegative_min_price", sql`${table.minPrice} >= 0`),
   check("products_positive_price", sql`${table.price} > 0 AND ${table.originalPrice} > 0`),
 ]);
 
@@ -60,6 +59,8 @@ export const orders = sqliteTable("orders", {
   originLat: real("origin_lat").notNull(),
   originLng: real("origin_lng").notNull(),
   customerHiddenAt: integer("customer_hidden_at"),
+  responseDeadlineAt: integer("response_deadline_at"),
+  recommendationId: text("recommendation_id"),
   createdAt: integer("created_at").notNull(),
 }, (table) => [index("orders_customer_created_idx").on(table.customerUserId, table.createdAt)]);
 
@@ -78,22 +79,25 @@ export const orderPickups = sqliteTable("order_pickups", {
   orderId: text("order_id").notNull().references(() => orders.id),
   shopId: text("shop_id").notNull().references(() => shops.id),
   sequence: integer("sequence").notNull(),
-  status: text("status", { enum: ["waiting", "accepted", "ready", "completed", "cancelled"] }).notNull().default("waiting"),
+  status: text("status", { enum: ["waiting", "accepted", "ready", "completed", "sold_out", "timeout", "no_show", "cancelled"] }).notNull().default("waiting"),
   etaAt: integer("eta_at").notNull(),
+  pickupDeadlineAt: integer("pickup_deadline_at"),
   pickupCode: text("pickup_code").notNull(),
   ownerHiddenAt: integer("owner_hidden_at"),
   completedAt: integer("completed_at"),
+  respondedAt: integer("responded_at"),
+  receivedAt: integer("received_at"),
   createdAt: integer("created_at").notNull(),
 }, (table) => [primaryKey({ columns: [table.orderId, table.shopId] }), index("order_pickups_shop_status_idx").on(table.shopId, table.status)]);
 
-export const inventoryMovements = sqliteTable("inventory_movements", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  productId: text("product_id").notNull().references(() => products.id),
-  orderId: text("order_id").references(() => orders.id),
-  delta: integer("delta").notNull(),
+export const recommendations = sqliteTable("recommendations", {
+  id: text("id").primaryKey(),
+  customerUserId: text("customer_user_id").notNull().references(() => users.id),
+  productIds: text("product_ids").notNull(),
   reason: text("reason").notNull(),
   createdAt: integer("created_at").notNull(),
-}, (table) => [index("inventory_movements_product_idx").on(table.productId, table.createdAt)]);
+  expiresAt: integer("expires_at").notNull(),
+});
 
 export const likes = sqliteTable("likes", {
   userId: text("user_id").notNull().references(() => users.id),

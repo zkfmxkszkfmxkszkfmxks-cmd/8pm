@@ -62,6 +62,12 @@ function salePrice(original: number, id: number) {
   return Math.max(step, Math.min(max, Math.max(min, rounded)));
 }
 
+export function currentPrice(original: number, minPrice: number, closingAt: number, timestamp = now()) {
+  const minutes = (closingAt - timestamp) / 60000;
+  const rate = minutes > 120 ? 10 : minutes > 60 ? 20 : 35;
+  return { price: Math.min(original, Math.max(minPrice, Math.round(original * (100 - rate) / 100))), discountRate: rate };
+}
+
 export async function ensureSeed(db: D1Database) {
   const first = await db.prepare("SELECT id FROM shops LIMIT 1").first<Row>();
   if (!first) {
@@ -71,11 +77,11 @@ export async function ensureSeed(db: D1Database) {
       statements.push(db.prepare("INSERT OR IGNORE INTO shops (id,owner_user_id,name,category,area,address,lat,lng,image,sample,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
         .bind(shop.id, null, shop.name, shop.category || null, shop.area, shop.address, shop.lat, shop.lng, shop.image, 1, timestamp));
     }
-    for (const [id, shopId, name, originalPrice, stock, image, description] of seedData.menus) {
+    for (const [id, shopId, name, originalPrice, , image, description] of seedData.menus) {
       const category = seedData.shops.find(shop => shop.id === shopId)?.category;
       const closing = category ? (id % 3 === 0 ? "20:00" : "21:00") : "18:00";
-      statements.push(db.prepare("INSERT OR IGNORE INTO products (id,shop_id,name,description,original_price,price,stock,initial_stock,image,surplus_reason,listing_date,closing_label,closing_at,status,sample,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-        .bind(String(id), shopId, name, description, originalPrice, salePrice(originalPrice, id), stock, stock, `assets/${image}.jpg`, "오늘 준비한 여분", date, closing, 4102444800000, "active", 1, timestamp - id * 60000, timestamp));
+      statements.push(db.prepare("INSERT OR IGNORE INTO products (id,shop_id,name,description,original_price,price,min_price,image,surplus_reason,listing_date,closing_label,closing_at,status,sample,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+        .bind(String(id), shopId, name, description, originalPrice, originalPrice, Math.round(originalPrice * .65 / 10) * 10, `assets/${image}.jpg`, "오늘 준비한 여분", date, closing, closingMillis(date, closing), "active", 1, timestamp - id * 60000, timestamp));
     }
     await db.batch(statements);
   }
@@ -95,16 +101,17 @@ export async function ensureSeed(db: D1Database) {
     await db.batch(changes);
   }
   const date = today();
-  await db.prepare("UPDATE products SET listing_date=?,stock=initial_stock,updated_at=? WHERE sample=1 AND listing_date<>?")
-    .bind(date, now(), date).run();
-  await db.prepare("UPDATE products SET stock=MIN(stock,5),initial_stock=MIN(initial_stock,5),updated_at=? WHERE stock>5 OR initial_stock>5")
-    .bind(now()).run();
+  await db.prepare("UPDATE products SET listing_date=?,closing_at=CAST(strftime('%s', ? || 'T' || closing_label || ':00+09:00') AS INTEGER)*1000,status='active',updated_at=? WHERE sample=1 AND (listing_date<>? OR closing_at>410244480000)")
+    .bind(date, date, now(), date).run();
 }
 
 export function productForClient(row: Row) {
+  const current = currentPrice(Number(row.original_price), Number(row.min_price || 0), Number(row.closing_at));
   return {
-    id: Number(row.id), shop: row.shop_id, name: row.name, originalPrice: row.original_price, price: row.price,
-    stock: row.stock, image: row.image, desc: row.description, surplusReason: row.surplus_reason,
+    id: Number(row.id), shop: row.shop_id, name: row.name, originalPrice: row.original_price, price: current.price, minPrice: row.min_price,
+    status: row.status, closingAt: row.closing_at, discountRate: current.discountRate,
+    reservable: row.status === "active" && Number(row.closing_at) > now(),
+    image: row.image, desc: row.description, surplusReason: row.surplus_reason,
     closing: row.closing_label, date: row.listing_date, publishedAt: row.created_at, sample: Boolean(row.sample), likes: row.like_count || 0,
   };
 }
