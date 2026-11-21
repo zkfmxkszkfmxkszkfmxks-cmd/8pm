@@ -20,6 +20,29 @@ const voucherEligible = (product: Row) => Boolean(product.accepts_voucher) && pr
 
 function conflictsWithRequest(product: Row, request: string) {
   const label = `${product.name} ${product.description || ""}`;
+  const allergyLine = request.match(/^알레르기 주의: (.*)$/m)?.[1] || "";
+  const allergies = new Set(allergyLine.split(", ").filter(Boolean));
+  const obviousAllergens: Record<string, RegExp> = {
+    "우유": /우유|치즈|버터|크림|라테|요거트|밀크|카푸치노|휘낭시에|크루아상|스콘|리조또/,
+    "달걀": /달걀|계란|에그|오믈렛|마요|크루아상|휘낭시에|케이크/,
+    "밀": /밀가루|글루텐|빵|샌드위치|크루아상|스콘|휘낭시에|파스타|면|우동|짬뽕|짜장|소바|만두|라면|국수|케이크|쿠키|도넛|피자/,
+    "땅콩": /땅콩/,
+    "견과류": /견과|아몬드|호두|잣|캐슈|피스타치오/,
+    "대두": /대두|콩|두부|유부|간장|된장/,
+    "새우": /새우|쉬림프|해물|해산물/,
+    "게": /게살|꽃게|게장|게맛살|크랩|해물|해산물/,
+    "생선": /생선|고등어|참치|연어|명태|대구/,
+    "조개류": /조개|홍합|굴|전복|바지락|해물|해산물/,
+    "메밀": /메밀|소바/,
+    "복숭아": /복숭아|피치/,
+  };
+  if ([...allergies].some(item => obviousAllergens[item]?.test(label))) return true;
+  const avoidLine = request.match(/^섭취 주의: (.*)$/m)?.[1] || "";
+  const avoid = new Set(avoidLine.split(", ").filter(Boolean));
+  if (avoid.has("카페인") && /커피|라테|콜드브루|에스프레소|아메리카노|홍차|녹차|말차/.test(label)) return true;
+  if (avoid.has("매운 음식") && /매운|맵|고추|제육|짬뽕|김치|떡볶이|마라/.test(label)) return true;
+  if (avoid.has("차가운 음식") && /아이스|얼음|시원|냉소바|콜드브루|샐러드|주스|병입/.test(label)) return true;
+  if (avoid.has("밀가루 음식") && obviousAllergens["밀"].test(label)) return true;
   const clauses = request.split(/[\n,.!?。]/).map(part => part.trim()).filter(Boolean);
   const excludesFlour = clauses.some(part => /밀가루|글루텐/.test(part) && /제외|없이|빼|피하|피해|피하고|안\s*먹|못\s*먹|알레르기/.test(part));
   if (excludesFlour && /빵|샌드위치|크루아상|스콘|휘낭시에|치아바타|바게트|파스타|면|우동|짬뽕|짜장|소바|만두|라면|국수|케이크|쿠키|도넛|피자/.test(label)) return true;
@@ -117,7 +140,7 @@ export async function POST(request: Request) {
     let parsed: { budget: number | null; sets: Array<{ productIds: string[]; reason: string }> } = { budget: null, sets: [] };
     try {
       parsed = await geminiJson<typeof parsed>(
-        "고객의 저장된 특이사항과 이번 요청을 모두 반영해 함께 먹기 좋은 두 상품 조합을 최대 3개 제안하세요. 저장된 특이사항은 모든 추천에 적용하세요. 제공된 상품 ID만 사용하고 반드시 서로 다른 가게의 상품 두 개를 고르세요. 맛의 조화와 고객 조건을 근거로 각 조합의 이유를 한국어 한 문장으로 쓰세요. 상품이나 가게를 만들어내지 마세요. 원재료가 확인되지 않은 메뉴를 알레르기나 특정 식재료에 안전하다고 단정하지 마세요. budget은 이번 요청에 명시된 총 예산(원)만 숫자로, 없으면 null로 반환하세요.",
+        "고객의 저장된 특이사항과 이번 요청을 모두 반영해 함께 먹기 좋은 두 상품 조합을 최대 3개 제안하세요. 저장된 알레르기 주의 재료와 섭취 주의 음식은 모든 추천에 적용하고, 이름과 설명에서 관련 재료가 보이거나 일반적으로 포함될 가능성이 큰 메뉴는 고르지 마세요. 제공된 상품 ID만 사용하고 반드시 서로 다른 가게의 상품 두 개를 고르세요. 맛의 조화와 고객 조건을 근거로 각 조합의 이유를 한국어 한 문장으로 쓰세요. 상품이나 가게를 만들어내지 마세요. 원재료가 확인되지 않은 메뉴를 알레르기나 특정 식재료에 안전하다고 단정하지 마세요. budget은 이번 요청에 명시된 총 예산(원)만 숫자로, 없으면 null로 반환하세요.",
         { profileNotes: notes, request: prompt, catalog }, schema,
       );
     } catch (error) {

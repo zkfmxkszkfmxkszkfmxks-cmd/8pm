@@ -203,7 +203,11 @@ document.addEventListener('submit',event=>{
   if(event.target.id!=='customer-profile-form')return;
   event.preventDefault();event.stopImmediatePropagation();
   if(!demoSession.signedIn||demoSession.role!=='customer')return signIn();
-  const form=event.target,button=form.querySelector('button[type="submit"]'),notes=String(new FormData(form).get('notes')||'');
+  const form=event.target,button=form.querySelector('button[type="submit"]'),data=new FormData(form);
+  const allergens=data.getAll('allergen').filter(value=>PROFILE_ALLERGENS.includes(value));
+  const avoid=data.getAll('avoid').filter(value=>PROFILE_AVOID.includes(value));
+  const extra=String(data.get('extra')||'').trim();
+  const notes=[allergens.length?`알레르기 주의: ${allergens.join(', ')}`:'',avoid.length?`섭취 주의: ${avoid.join(', ')}`:'',extra?`추가 요청: ${extra}`:''].filter(Boolean).join('\n');
   if(button){button.disabled=true;button.textContent='저장 중...';}
   void withServer(async()=>{
     const result=await api('profile-save',{notes});
