@@ -25,7 +25,7 @@ async function orderRows(db: D1Database, userId: string, owner: boolean, ownerSh
     const pickups = await db.prepare("SELECT p.*,s.name,s.area,s.address,s.lat,s.lng FROM order_pickups p JOIN shops s ON s.id=p.shop_id WHERE p.order_id=? ORDER BY p.sequence").bind(row.id).all<Row>();
     const stops = pickups.results.map(s => ({ id: s.shop_id, name: s.name, area: s.area, address: s.address, lat: s.lat, lng: s.lng, pickup: new Intl.DateTimeFormat("ko-KR", {timeZone:"Asia/Seoul",hour:"2-digit",minute:"2-digit",hour12:false}).format(s.eta_at), status: s.status, responseStatus:s.response_status, receiptStatus:s.receipt_status, respondedAt:s.responded_at, pickupDeadlineAt:s.pickup_deadline_at, receivedAt:s.received_at, items:items.results.filter(i=>i.shop_id===s.shop_id).map(i=>`${i.name} × ${i.quantity}`) }));
     const statuses=stops.map(s=>s.status);
-    const reservationStatus=statuses.includes("sold_out")||statuses.includes("cancelled")?"sold_out":statuses.includes("timeout")?"timeout":statuses.includes("no_show")?"no_show":statuses.every(s=>s==="completed")?"completed":statuses.every(s=>s==="accepted"||s==="completed")?"confirmed":"waiting";
+    const reservationStatus=statuses.includes("sold_out")?"sold_out":statuses.includes("cancelled")?"cancelled":statuses.includes("timeout")?"timeout":statuses.includes("no_show")?"no_show":statuses.every(s=>s==="completed")?"completed":statuses.every(s=>s==="accepted"||s==="completed")?"confirmed":"waiting";
     const recommendation=row.recommendation_id?await db.prepare("SELECT reason FROM recommendations WHERE id=?").bind(row.recommendation_id).first<Row>():null;
     const replacement = !owner && reservationStatus === "sold_out" ? await db.prepare("SELECT id FROM orders WHERE replacement_of_order_id=? LIMIT 1").bind(row.id).first<Row>() : null;
     result.push({ id: Number(row.id), date: new Intl.DateTimeFormat("sv-SE", {timeZone:"Asia/Seoul",dateStyle:"short",timeStyle:"short"}).format(row.created_at), items: items.results.map(i => ({id:Number(i.product_id),shop:i.shop_id,name:i.name,qty:i.quantity,price:i.unit_price,setDiscount:i.set_discount})), subtotal:row.subtotal,setDiscount:row.set_discount,total:row.total,paymentMethod:row.payment_method||"onsite",useVoucher:Boolean(row.use_voucher),origin:{lat:row.origin_lat,lng:row.origin_lng},stops,status:owner?row.pickup_status:reservationStatus,reservationStatus:row.response_deadline_at?row.status:reservationStatus,requestedAt:row.requested_at||row.created_at,responseDeadlineAt:row.response_deadline_at,confirmedAt:row.confirmed_at,setId:row.recommendation_id,recommendationId:row.recommendation_id,recommendationReason:recommendation?.reason||null,replacementOfOrderId:row.replacement_of_order_id?Number(row.replacement_of_order_id):null,replacementOrderId:replacement?Number(replacement.id):null,completedAt:row.completed_at,sample:false });
@@ -125,9 +125,9 @@ export async function POST(request: Request) {
       requireOwner(user);
       const ownerShop=await selectedOwnerShop(db,body.shopId);
       const next=text(body.status,20);
-      if(!["accepted","sold_out","completed"].includes(next)) throw new ApiError(400,"invalid_status");
+      if(!["accepted","sold_out","cancelled","completed"].includes(next)) throw new ApiError(400,"invalid_status");
       const orderId=String(int(body.orderId));
-      await ownerReservationResponse(db,orderId,ownerShop,next as "accepted"|"sold_out"|"completed",timestamp);
+      await ownerReservationResponse(db,orderId,ownerShop,next as "accepted"|"sold_out"|"cancelled"|"completed",timestamp);
       return json({ok:true});
     }
     if (action === "shop-voucher") {

@@ -40,7 +40,8 @@ export function pricedProduct(product: Row, timestamp = now()) {
 export async function syncOrderState(db: D1Database, orderId: string, timestamp = now()) {
   const pickups = await db.prepare("SELECT status FROM order_pickups WHERE order_id=?").bind(orderId).all<Row>();
   const statuses = pickups.results.map(row => row.status);
-  const status = statuses.includes("sold_out") || statuses.includes("cancelled") ? "sold_out"
+  const status = statuses.includes("sold_out") ? "sold_out"
+    : statuses.includes("cancelled") ? "cancelled"
     : statuses.includes("timeout") ? "timeout"
     : statuses.includes("no_show") ? "no_show"
     : statuses.length > 0 && statuses.every(value => value === "completed") ? "completed"
@@ -105,17 +106,17 @@ export async function createReservation(db: D1Database, userId: string, body: Ro
   return { orderId: Number(orderId) };
 }
 
-export async function ownerReservationResponse(db: D1Database, orderId: string, shopId: string, action: "accepted" | "sold_out" | "completed", timestamp = now()) {
+export async function ownerReservationResponse(db: D1Database, orderId: string, shopId: string, action: "accepted" | "sold_out" | "cancelled" | "completed", timestamp = now()) {
   await reconcileReservations(db, timestamp);
   const pickup = await db.prepare("SELECT * FROM order_pickups WHERE order_id=? AND shop_id=?").bind(orderId, shopId).first<Row>();
   if (!pickup) throw new ApiError(404, "order_not_found");
   const order = await db.prepare("SELECT response_deadline_at FROM orders WHERE id=?").bind(orderId).first<Row>();
-  if (action === "accepted" || action === "sold_out") {
+  if (action === "accepted" || action === "sold_out" || action === "cancelled") {
     if (pickup.status !== "waiting" || !order || Number(order.response_deadline_at) <= timestamp) throw new ApiError(409, "response_window_closed");
     const changed = await db.prepare("UPDATE order_pickups SET status=?,response_status=?,responded_at=? WHERE order_id=? AND shop_id=? AND status='waiting'").bind(action, action, timestamp, orderId, shopId).run();
     if (!changed.meta.changes) throw new ApiError(409, "response_already_recorded");
-    if (action === "sold_out") {
-      await db.prepare("UPDATE products SET status='sold_out',updated_at=? WHERE id IN (SELECT product_id FROM order_items WHERE order_id=? AND shop_id=?)").bind(timestamp, orderId, shopId).run();
+    if (action === "sold_out" || action === "cancelled") {
+      if (action === "sold_out") await db.prepare("UPDATE products SET status='sold_out',updated_at=? WHERE id IN (SELECT product_id FROM order_items WHERE order_id=? AND shop_id=?)").bind(timestamp, orderId, shopId).run();
       await db.prepare("UPDATE order_pickups SET status='cancelled',response_status=CASE WHEN response_status='waiting' THEN 'cancelled' ELSE response_status END WHERE order_id=? AND shop_id<>? AND status IN ('waiting','accepted')").bind(orderId, shopId).run();
     }
     await syncOrderState(db, orderId, timestamp);

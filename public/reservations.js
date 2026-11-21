@@ -1,10 +1,10 @@
 // Reservation experience shared by the customer and selected demo shop owner.
-const reservationLabel = status => ({waiting:'응답 대기',accepted:'수락 · 다른 가게 응답 대기',confirmed:'픽업 확정',completed:'수령 완료',sold_out:'품절로 종료',cancelled:'품절로 종료',timeout:'응답 시간 초과',no_show:'픽업 미수령',ready:'픽업 확정'})[status] || '상태 확인 중';
+const reservationLabel = status => ({waiting:'응답 대기',accepted:'수락 · 다른 가게 응답 대기',confirmed:'픽업 확정',completed:'수령 완료',sold_out:'품절로 종료',cancelled:'취소로 종료',timeout:'응답 시간 초과',no_show:'픽업 미수령',ready:'픽업 확정'})[status] || '상태 확인 중';
 const productAvailability = menu => menu.status === 'sold_out' ? '품절' : menu.reservable ? '예약 요청 가능' : '마감';
 const deadlineText = time => new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',hour12:false}).format(Number(time));
 const requestTimer = deadline => `<time class="reservation-timer" data-deadline="${Number(deadline)||0}">05:00</time>`;
 const shopOrderTotal = (order,shopId) => order.items.filter(item=>item.shop===shopId).reduce((sum,item)=>sum+item.price*item.qty,0);
-const customerResponseLabel = stop => stop.responseStatus==='sold_out'?'재고 부족':stop.status==='cancelled'?'요청 종료':stop.responseStatus==='accepted'?'수락':stop.responseStatus==='timeout'?'응답 시간 초과':'확인 중';
+const customerResponseLabel = stop => stop.responseStatus==='sold_out'?'재고 부족':stop.status==='cancelled'?'요청 취소':stop.responseStatus==='accepted'?'수락':stop.responseStatus==='timeout'?'응답 시간 초과':'확인 중';
 const customerReceiptLabel = stop => stop.receiptStatus==='completed'?'수령 완료':stop.receiptStatus==='no_show'?'미수령':['sold_out','cancelled','timeout'].includes(stop.status)?'수령 해당 없음':'수령 대기';
 let featuredSets=[],featuredAttemptKey='',featuredLoading=false,featuredLastGeneratedAt=0,replacementData=null,replacementSelectedId=null;
 const setCatalog=()=>[...featuredSets,...(Array.isArray(aiResult)?aiResult:[])].filter((item,index,all)=>all.findIndex(other=>other.id===item.id)===index);
@@ -45,6 +45,11 @@ shopInfo=function(id){
 const previousFeedPage=feedPage;
 feedPage=function(){
   storyFilter='';
+  if(state.mode==='owner'){
+    const store=shop(OWNER_SHOP_ID),menus=ownerMenus();
+    const preview=`<article class="post shop-post owner-preview-card"><div class="post-top"><img src="assets/${esc(store.image)}.jpg" alt=""><span><strong>${esc(store.name)}</strong><small>${esc(store.area)} · ${esc(store.category||'골목 가게')}</small></span><span class="stock">메뉴 ${menus.length}개</span></div><div class="shop-carousel-head"><strong>오늘의 마감 메뉴</strong><small>고객 화면 미리보기</small></div><div class="shop-products">${menus.map(menu=>`<div class="shop-product"><img class="shop-product-photo" src="${image(menu)}" alt="${esc(menu.name)} 사진"><div class="shop-product-body"><strong class="shop-product-name">${esc(menu.name)}</strong><span class="shop-product-price"><b>${won(menu.price)}</b><del>${won(menu.originalPrice||menu.price)}</del></span><small class="shop-product-stock">${discountPercent(menu)}% 할인 · ${productAvailability(menu)}</small><p class="shop-product-desc">${esc(menu.desc)}</p></div></div>`).join('')||'<p class="muted">오늘 등록된 메뉴가 없습니다.</p>'}</div></article>`;
+    return `${heading('FOR SHOP OWNERS','내 가게','손님에게 보이는 메뉴와 가격을 확인하세요.')}${ownerBanner()}<section class="panel owner-shop-panel"><div class="panel-title"><h2>가게 미리보기</h2><span>${menus.length}개</span></div><div class="owner-shop-preview">${preview}</div></section>`;
+  }
   const content=previousFeedPage().replace('서울 전역의 가상 가게','시연용 가상 가게').replace(/가격과 재고는 서버에 저장됩니다\./,'예약 상태는 서버에 저장됩니다.');
   return content;
 };
@@ -101,7 +106,7 @@ ownerOrderCard=function(order){
   const end=['completed','sold_out','cancelled','timeout','no_show'].includes(status);
   const label=status==='accepted'&&order.reservationStatus==='confirmed'?'픽업 확정':status==='accepted'?'다른 가게 응답 대기':reservationLabel(status);
   const deadline=Number(order.responseDeadlineAt)||0;
-  return `<article class="owner-order-card"><div class="owner-order-top"><strong>주문 #${orderNumber(order)}</strong><span class="owner-status ${esc(status)}">${label}</span></div><small>${esc(order.date)}</small><div class="owner-order-items">${orderItemRows(items)}</div><div class="order-price-total"><span>요청 시점 현장 결제 금액</span><strong>${won(localTotal)}</strong></div>${status==='waiting'?`<div class="owner-eta"><span>응답까지 남은 시간</span>${requestTimer(deadline)}</div><div class="reservation-actions"><button class="primary" data-action="reservation-response" data-id="${order.id}" data-value="accepted" ${deadline>Date.now()?'':'disabled'}>수락</button><button class="outline-button" data-action="reservation-response" data-id="${order.id}" data-value="sold_out" ${deadline>Date.now()?'':'disabled'}>품절</button></div>`:''}${status==='accepted'?`<p class="muted">${order.reservationStatus==='confirmed'?'고객이 각 가게에서 현장 결제 후 상품을 받으면 수령 완료를 누르세요.':'다른 가게의 응답을 기다리고 있어요.'}</p>${order.reservationStatus==='confirmed'?`<button class="primary" data-action="reservation-response" data-id="${order.id}" data-value="completed">수령 완료</button>`:''}`:''}${end?`<p class="muted">${reservationLabel(order.reservationStatus==='sold_out'?'sold_out':status)}</p>`:''}<button class="delete-order-button" data-action="delete-order" data-id="${order.id}">내역 삭제</button></article>`;
+  return `<article class="owner-order-card"><div class="owner-order-top"><strong>주문 #${orderNumber(order)}</strong><span class="owner-status ${esc(status)}">${label}</span></div><small>${esc(order.date)}</small><div class="owner-order-items">${orderItemRows(items)}</div><div class="order-price-total"><span>요청 시점 현장 결제 금액</span><strong>${won(localTotal)}</strong></div>${status==='waiting'?`<div class="reservation-actions"><button class="primary" data-action="reservation-response" data-id="${order.id}" data-value="accepted" ${deadline>Date.now()?'':'disabled'}>수락</button><button class="outline-button" data-action="reservation-response" data-id="${order.id}" data-value="cancelled" ${deadline>Date.now()?'':'disabled'}>취소</button></div>`:''}${status==='accepted'?`<p class="muted">${order.reservationStatus==='confirmed'?'고객이 각 가게에서 현장 결제 후 상품을 받으면 수령 완료를 누르세요.':'다른 가게의 응답을 기다리고 있어요.'}</p>${order.reservationStatus==='confirmed'?`<button class="primary" data-action="reservation-response" data-id="${order.id}" data-value="completed">수령 완료</button>`:''}`:''}${end?`<p class="muted">${reservationLabel(order.reservationStatus==='sold_out'?'sold_out':status)}</p>`:''}<button class="delete-order-button" data-action="delete-order" data-id="${order.id}">내역 삭제</button></article>`;
 };
 
 ownerOrdersPage=function(){

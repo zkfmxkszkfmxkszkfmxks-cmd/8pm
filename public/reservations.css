@@ -102,3 +102,7 @@
 .manage-bulk-actions button{padding:7px 10px;border:1px solid #d99a96;border-radius:9px;color:#b34440;background:#fff;font-size:.78rem;font-weight:800}
 .product-delete-entry{margin-top:10px;border-color:#d99a96;color:#b34440}
 .product-delete-help{margin:11px 0 18px;color:#587470;font-size:.83rem;line-height:1.55}
+.owner-shop-panel{border-color:#cce9e4}
+.owner-shop-preview .shop-post{margin:0;box-shadow:none}
+.owner-shop-preview .shop-products{grid-auto-flow:row;grid-auto-columns:auto;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible}
+@media(max-width:600px){.owner-shop-preview .shop-products{grid-template-columns:repeat(2,minmax(0,1fr))}}
